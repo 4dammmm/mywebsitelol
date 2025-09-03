@@ -2,42 +2,24 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <title>Frase + Video</title>
+  <title>Frase Grande</title>
   <style>
     body {
-      margin: 0;
-      background: #000;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      color: white;
+      margin: 0;
+      background-color: #f9f9f9;
     }
     h1 {
       font-size: 4em;
       font-family: Arial, sans-serif;
-    }
-    #video {
-      width: 100vw;
-      height: 100vh;
-      border: none;
-      display: none; /* nascosto all'inizio */
+      color: #222;
     }
   </style>
 </head>
 <body>
-  <h1 id="frase">FUCK THE NIGGAS</h1>
-  <iframe id="video" 
-          src="https://www.youtube.com/embed/qbWqXKN3m3c?autoplay=1&mute=0&modestbranding=1&rel=0"
-          allow="autoplay">
-  </iframe>
-
-  <script>
-    setTimeout(() => {
-      document.getElementById("frase").style.display = "none";
-      document.getElementById("video").style.display = "block";
-    }, 1000); // 1 secondo
-  </script>
+  <h1>FUCK THE NIGGAS!</h1>
 </body>
 </html>
-
