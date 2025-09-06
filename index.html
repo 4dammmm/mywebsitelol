@@ -1,112 +1,214 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DonutCasino Login</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: Arial, sans-serif;
-    }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>DonutCasino — Login</title>
+<style>
+  :root {
+    --frame-border: #11023F;
+    --blue: #0052a5;
+  }
 
-    body {
-      background: url("img/background.png") no-repeat center center fixed;
-      background-size: cover;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      overflow: hidden;
-    }
+  *{box-sizing:border-box;margin:0;padding:0;font-family: Arial, Helvetica, sans-serif}
 
-    /* Barra blu superiore */
-    header {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 60px;
-      background: #0d47a1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
+  html, body {
+    width:100%;
+    height:100%;
+    overflow:hidden; /* nessuno scroll, tutto a pieno schermo */
+  }
 
-    header img {
-      height: 40px;
-    }
+  body {
+    background: #0b0b0b;
+    display:flex;
+    flex-direction:column;
+  }
 
-    /* Box di login */
-    .login-box {
-      background: rgba(0, 0, 0, 0.7);
-      padding: 40px;
-      border-radius: 10px;
-      text-align: center;
-      color: white;
-      max-width: 400px;
-      width: 100%;
-    }
+  .center {
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    border-radius:12px;
+    overflow:hidden;
+    background: var(--frame-border); /* bordo scuro attorno */
+  }
 
-    .login-box h2 {
-      margin-bottom: 20px;
-      font-size: 22px;
-    }
+  /* Header blu in alto */
+  header {
+    height:70px;
+    background: var(--blue);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-top-left-radius:12px;
+    border-top-right-radius:12px;
+  }
+  header img{ height:40px; }
 
-    .options {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 20px;
-    }
+  /* Frame sotto header */
+  .frame {
+    flex:1;
+    border-radius:0 0 12px 12px;   /* solo angoli inferiori */
+    padding:12px;
+    overflow:hidden;
+    display:flex;
+  }
 
-    .options img {
-      height: 50px;
-      cursor: pointer;
-    }
+  /* Sfondo che riempie tutto lo spazio sotto header */
+  .bg {
+    position:relative;
+    flex:1;
+    border-radius:12px;
+    overflow:hidden;
+  }
 
-    input[type="text"] {
-      width: 100%;
-      padding: 10px;
-      margin: 15px 0;
-      border: none;
-      border-radius: 5px;
-      font-size: 16px;
-    }
+  .bg img.bg-img {
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+    z-index:0;
+    border-radius:12px;
+  }
 
-    button {
-      width: 100%;
-      padding: 12px;
-      background: #00c853;
-      border: none;
-      border-radius: 5px;
-      color: white;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
+  /* Overlay contenuto */
+  .content {
+    position:relative;
+    z-index:2;
+    width:100%;
+    height:100%;
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    padding-top:8vh; /* sposta leggermente verso l’alto */
+  }
 
-    button:hover {
-      background: #00e676;
-    }
-  </style>
+  /* BOX LOGIN */
+  .login-box {
+    width: 95%;
+    max-width: 640px;
+    background: rgba(0,0,0,0.2);
+    backdrop-filter: blur(6px);
+    padding: 60px 70px;
+    border-radius: 16px;
+    color: #fff;
+    text-align:center;
+  }
+
+  .login-box h2 {
+    font-size: 34px;
+    font-weight: 800;
+    color: #d9d9d9;
+    margin-bottom: 32px;
+  }
+
+  /* Opzioni Minecraft */
+  .options {
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:28px;
+    margin-bottom:30px;
+  }
+
+  .mc-btn {
+    width:200px;
+    height:80px;
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background: rgba(17,17,17,0.18);
+    cursor:pointer;
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,0.08);
+  }
+  .mc-btn img {
+    max-width:85%;
+    max-height:85%;
+    object-fit:contain;
+    display:block;
+  }
+  .mc-btn:hover {
+    background: rgba(34,34,34,0.22);
+    box-shadow: 0 0 12px rgba(0,255,0,0.25);
+  }
+
+  .or {
+    color:#fff;
+    font-weight:700;
+    font-size:20px;
+  }
+
+  /* Input */
+  input[type="text"] {
+    width:100%;
+    padding:16px;
+    border-radius:10px;
+    border:1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.05);
+    color:#fff;
+    font-size:18px;
+    margin-bottom:24px;
+  }
+  input::placeholder { color: rgba(255,255,255,0.6) }
+
+  /* Bottone login */
+  button.login {
+    width:100%;
+    padding:16px;
+    border-radius:10px;
+    border:none;
+    background:#00c853;
+    color:#fff;
+    font-weight:700;
+    font-size:18px;
+    cursor:pointer;
+  }
+  button.login:hover { background:#00e676; }
+
+  /* Responsive */
+  @media (max-width:768px) {
+    .login-box { padding:40px 25px; }
+    .login-box h2 { font-size:24px; }
+    .mc-btn { width:150px; height:65px; }
+  }
+</style>
 </head>
 <body>
-  <header>
-    <img src="img/logo.png" alt="DonutCasino Logo">
-  </header>
+  <div class="center">
+    <header>
+      <img src="img/logo.png" alt="DonutCasino Logo">
+    </header>
 
-  <div class="login-box">
-    <h2>Login to DonutCasino</h2>
-    <div class="options">
-      <img src="img/minecraft-bedrock.png" alt="Minecraft Bedrock Edition">
-      <span style="color:white; margin: auto 10px;">OR</span>
-      <img src="img/minecraft-java.png" alt="Minecraft Java Edition">
+    <div class="frame">
+      <div class="bg">
+        <img class="bg-img" src="img/background.png" alt="Background">
+
+        <div class="content">
+          <div class="login-box">
+            <h2>Login to DonutCasino</h2>
+
+            <div class="options">
+              <button class="mc-btn" aria-label="Minecraft Bedrock">
+                <img src="img/minecraft-bedrock.png" alt="Minecraft Bedrock">
+              </button>
+
+              <span class="or">OR</span>
+
+              <button class="mc-btn" aria-label="Minecraft Java">
+                <img src="img/minecraft-java.png" alt="Minecraft Java">
+              </button>
+            </div>
+
+            <input type="text" placeholder="Username" />
+            <button class="login">LOGIN</button>
+          </div>
+        </div>
+      </div>
     </div>
-    <input type="text" placeholder="Username">
-    <button>LOGIN</button>
   </div>
 </body>
 </html>
