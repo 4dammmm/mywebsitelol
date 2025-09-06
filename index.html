@@ -4,6 +4,8 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>DonutCasino — Login</title>
+<!-- Aggiungi la libreria Supabase -->
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --frame-border: #11023F;
@@ -15,7 +17,7 @@
   html, body {
     width:100%;
     height:100%;
-    overflow:hidden; /* nessuno scroll, tutto a pieno schermo */
+    overflow:hidden;
   }
 
   body {
@@ -30,10 +32,9 @@
     flex-direction:column;
     border-radius:12px;
     overflow:hidden;
-    background: var(--frame-border); /* bordo scuro attorno */
+    background: var(--frame-border);
   }
 
-  /* Header blu in alto */
   header {
     height:70px;
     background: var(--blue);
@@ -45,16 +46,14 @@
   }
   header img{ height:40px; }
 
-  /* Frame sotto header */
   .frame {
     flex:1;
-    border-radius:0 0 12px 12px;   /* solo angoli inferiori */
+    border-radius:0 0 12px 12px;
     padding:12px;
     overflow:hidden;
     display:flex;
   }
 
-  /* Sfondo che riempie tutto lo spazio sotto header */
   .bg {
     position:relative;
     flex:1;
@@ -73,7 +72,6 @@
     border-radius:12px;
   }
 
-  /* Overlay contenuto */
   .content {
     position:relative;
     z-index:2;
@@ -82,10 +80,9 @@
     display:flex;
     justify-content:center;
     align-items:flex-start;
-    padding-top:8vh; /* sposta leggermente verso l’alto */
+    padding-top:8vh;
   }
 
-  /* BOX LOGIN */
   .login-box {
     width: 95%;
     max-width: 640px;
@@ -104,45 +101,6 @@
     margin-bottom: 32px;
   }
 
-  /* Opzioni Minecraft */
-  .options {
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    gap:28px;
-    margin-bottom:30px;
-  }
-
-  .mc-btn {
-    width:200px;
-    height:80px;
-    border-radius:12px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background: rgba(17,17,17,0.18);
-    cursor:pointer;
-    overflow:hidden;
-    border:1px solid rgba(255,255,255,0.08);
-  }
-  .mc-btn img {
-    max-width:85%;
-    max-height:85%;
-    object-fit:contain;
-    display:block;
-  }
-  .mc-btn:hover {
-    background: rgba(34,34,34,0.22);
-    box-shadow: 0 0 12px rgba(0,255,0,0.25);
-  }
-
-  .or {
-    color:#fff;
-    font-weight:700;
-    font-size:20px;
-  }
-
-  /* Input */
   input[type="text"] {
     width:100%;
     padding:16px;
@@ -155,7 +113,6 @@
   }
   input::placeholder { color: rgba(255,255,255,0.6) }
 
-  /* Bottone login */
   button.login {
     width:100%;
     padding:16px;
@@ -169,11 +126,32 @@
   }
   button.login:hover { background:#00e676; }
 
-  /* Responsive */
+  #message {
+    margin-top: 20px;
+    padding: 10px;
+    border-radius: 8px;
+    display: none;
+  }
+  .success { background: rgba(0, 200, 83, 0.2); color: #00e676; display: block !important; }
+  .error { background: rgba(255, 0, 0, 0.2); color: #ff5252; display: block !important; }
+  .info { background: rgba(30, 136, 229, 0.2); color: #64b5f6; display: block !important; }
+
+  .player-info {
+    margin-top: 20px;
+    text-align: left;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: 10px;
+    display: none;
+  }
+  .player-info h3 {
+    margin-bottom: 10px;
+    color: #00e676;
+  }
+
   @media (max-width:768px) {
     .login-box { padding:40px 25px; }
     .login-box h2 { font-size:24px; }
-    .mc-btn { width:150px; height:65px; }
   }
 </style>
 </head>
@@ -189,26 +167,101 @@
 
         <div class="content">
           <div class="login-box">
-            <h2>Login to DonutCasino</h2>
+            <h2>Accedi a DonutCasino</h2>
 
-            <div class="options">
-              <button class="mc-btn" aria-label="Minecraft Bedrock">
-                <img src="img/minecraft-bedrock.png" alt="Minecraft Bedrock">
-              </button>
+            <input type="text" id="minecraftUsername" placeholder="Inserisci il tuo username Minecraft" />
+            <button class="login" onclick="checkPlayer()">ACCEDI</button>
 
-              <span class="or">OR</span>
+            <div id="message"></div>
 
-              <button class="mc-btn" aria-label="Minecraft Java">
-                <img src="img/minecraft-java.png" alt="Minecraft Java">
-              </button>
+            <div id="playerInfo" class="player-info">
+              <h3>Info Giocatore</h3>
+              <p><strong>Username:</strong> <span id="info-username"></span></p>
+              <p><strong>Stato Verifica:</strong> <span id="info-verified"></span></p>
+              <p><strong>Saldo:</strong> <span id="info-balance"></span> gettoni</p>
+              <div id="verification-instruction" style="display: none;">
+                <p style="color: #ffeb3b; margin-top: 10px;">Per verificarti, entra sul server e scrivi: <code>/tpa VerificatoreBot</code></p>
+              </div>
             </div>
-
-            <input type="text" placeholder="Username" />
-            <button class="login">LOGIN</button>
           </div>
         </div>
       </div>
     </div>
   </div>
+
+  <script>
+    // Configura Supabase. SOSTITUISCI con i tuoi valori!
+    const SUPABASE_URL = 'https://sagzrjcbdtkqhdzdlmmn.supabase.co'; // La tua URL Supabase
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhZ3pyamNiZHRrcWhkemRsbW1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxOTA0ODUsImV4cCI6MjA3Mjc2NjQ4NX0.UzADYjRPzXTq8AqvuE13tV9o2nY305bmvY8fpP_AD2c'; // La tua Anon Key
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    function showMessage(text, type = 'info') {
+      const messageEl = document.getElementById('message');
+      messageEl.textContent = text;
+      messageEl.className = type; // 'success', 'error', 'info'
+    }
+
+    function showPlayerInfo(data) {
+      document.getElementById('playerInfo').style.display = 'block';
+      document.getElementById('info-username').textContent = data.minecraft_username;
+      document.getElementById('info-verified').textContent = data.is_verified ? '✅ Verificato' : '❌ Non verificato';
+      document.getElementById('info-balance').textContent = data.balance;
+
+      // Mostra le istruzioni per la verifica solo se il giocatore non è verificato
+      document.getElementById('verification-instruction').style.display = data.is_verified ? 'none' : 'block';
+    }
+
+    async function checkPlayer() {
+      const username = document.getElementById('minecraftUsername').value.trim().toLowerCase();
+      showMessage('Caricamento...', 'info');
+      document.getElementById('playerInfo').style.display = 'none';
+
+      if (!username) {
+        showMessage('Per favore, inserisci il tuo username.', 'error');
+        return;
+      }
+
+      try {
+        // 1. Cerca il giocatore nel database
+        const { data, error } = await supabase
+          .from('players')
+          .select('*')
+          .eq('minecraft_username', username)
+          .maybeSingle(); // Restituisce un solo risultato o null
+
+        if (error) throw error;
+
+        if (data) {
+          // 2. Giocatore trovato!
+          showMessage('Accesso effettuato!', 'success');
+          showPlayerInfo(data);
+        } else {
+          // 3. Giocatore non trovato, crea un nuovo profilo
+          const { data: newPlayer, error: insertError } = await supabase
+            .from('players')
+            .insert([{ minecraft_username: username, balance: 1000 }])
+            .select()
+            .single();
+
+          if (insertError) throw insertError;
+
+          showMessage('Nuovo profilo creato! Benvenuto!', 'success');
+          showPlayerInfo(newPlayer);
+          // Le istruzioni per la verifica saranno mostrate automaticamente da showPlayerInfo
+        }
+
+      } catch (error) {
+        console.error('Errore:', error);
+        showMessage('Errore di connessione al database.', 'error');
+      }
+    }
+
+    // Permetti di premere "Invio" per accedere
+    document.getElementById('minecraftUsername').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        checkPlayer();
+      }
+    });
+  </script>
 </body>
 </html>
