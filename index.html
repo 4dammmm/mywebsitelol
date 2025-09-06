@@ -4,8 +4,8 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>DonutCasino — Login</title>
-<!-- Aggiungi la libreria Supabase -->
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<!-- Libreria Supabase CORRETTA -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --frame-border: #11023F;
@@ -190,29 +190,36 @@
   </div>
 
   <script>
-    // Configura Supabase. SOSTITUISCI con i tuoi valori!
-    const SUPABASE_URL = 'https://sagzrjcbdtkqhdzdlmmn.supabase.co'; // La tua URL Supabase
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhZ3pyamNiZHRrcWhkemRsbW1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxOTA0ODUsImV4cCI6MjA3Mjc2NjQ4NX0.UzADYjRPzXTq8AqvuE13tV9o2nY305bmvY8fpP_AD2c'; // La tua Anon Key
+    // 🔥 SOSTITUISCI QUESTI VALORI CON I TUOI!
+    const SUPABASE_URL = 'https://sagzrjcbdtkqhdzdlmmn.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhZ3pyamNiZHRrcWhkemRsbW1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxOTA0ODUsImV4cCI6MjA3Mjc2NjQ4NX0.UzADYjRPzXTq8AqvuE13tV9o2nY305bmvY8fpP_AD2c';
+    
+    // Inizializza Supabase
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     function showMessage(text, type = 'info') {
       const messageEl = document.getElementById('message');
       messageEl.textContent = text;
-      messageEl.className = type; // 'success', 'error', 'info'
+      messageEl.className = type;
     }
 
     function showPlayerInfo(data) {
-      document.getElementById('playerInfo').style.display = 'block';
+      const playerInfo = document.getElementById('playerInfo');
+      playerInfo.style.display = 'block';
       document.getElementById('info-username').textContent = data.minecraft_username;
       document.getElementById('info-verified').textContent = data.is_verified ? '✅ Verificato' : '❌ Non verificato';
       document.getElementById('info-balance').textContent = data.balance;
 
-      // Mostra le istruzioni per la verifica solo se il giocatore non è verificato
-      document.getElementById('verification-instruction').style.display = data.is_verified ? 'none' : 'block';
+      // Mostra istruzioni verifica se necessario
+      const verifyInstruction = document.getElementById('verification-instruction');
+      verifyInstruction.style.display = data.is_verified ? 'none' : 'block';
     }
 
     async function checkPlayer() {
-      const username = document.getElementById('minecraftUsername').value.trim().toLowerCase();
+      const usernameInput = document.getElementById('minecraftUsername');
+      const username = usernameInput.value.trim();
+      
+      // Reset messaggi precedenti
       showMessage('Caricamento...', 'info');
       document.getElementById('playerInfo').style.display = 'none';
 
@@ -223,44 +230,44 @@
 
       try {
         // 1. Cerca il giocatore nel database
-        const { data, error } = await supabase
+        const { data: existingPlayer, error: searchError } = await supabase
           .from('players')
           .select('*')
           .eq('minecraft_username', username)
-          .maybeSingle(); // Restituisce un solo risultato o null
+          .maybeSingle();
 
-        if (error) throw error;
+        if (searchError) throw searchError;
 
-        if (data) {
+        if (existingPlayer) {
           // 2. Giocatore trovato!
           showMessage('Accesso effettuato!', 'success');
-          showPlayerInfo(data);
+          showPlayerInfo(existingPlayer);
         } else {
-          // 3. Giocatore non trovato, crea un nuovo profilo
+          // 3. Giocatore non trovato → creane uno nuovo
           const { data: newPlayer, error: insertError } = await supabase
             .from('players')
-            .insert([{ minecraft_username: username, balance: 1000 }])
+            .insert([{ 
+              minecraft_username: username, 
+              balance: 1000 
+            }])
             .select()
             .single();
 
           if (insertError) throw insertError;
 
-          showMessage('Nuovo profilo creato! Benvenuto!', 'success');
+          showMessage('Nuovo profilo creato! Benvenuto! 🎉', 'success');
           showPlayerInfo(newPlayer);
-          // Le istruzioni per la verifica saranno mostrate automaticamente da showPlayerInfo
         }
 
       } catch (error) {
-        console.error('Errore:', error);
-        showMessage('Errore di connessione al database.', 'error');
+        console.error('Errore Supabase:', error);
+        showMessage('Errore di connessione. Riprova più tardi.', 'error');
       }
     }
 
-    // Permetti di premere "Invio" per accedere
+    // Permetti di premere INVIO per accedere
     document.getElementById('minecraftUsername').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        checkPlayer();
-      }
+      if (e.key === 'Enter') checkPlayer();
     });
   </script>
 </body>
