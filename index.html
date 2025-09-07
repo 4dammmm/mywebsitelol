@@ -416,6 +416,7 @@
 
         let currentUsername = null;
         let isVerified = false;
+        let verificationInterval = null;
 
         // Funzione per iniziare la verifica
         async function startVerification() {
@@ -440,17 +441,28 @@
             try {
                 currentUsername = username.toLowerCase();
                 isVerified = false;
-
+                
+                // Ferma eventuali intervalli precedenti
+                if (verificationInterval) {
+                    clearInterval(verificationInterval);
+                }
+                
                 showStatus(
                     `✅ Verifica iniziata!<br><br>
-                👉 Vai su Minecraft e scrivi:<br>
-                <code>/tpa VerificatoreBot</code><br><br>
-                ⏳ Dopo aver fatto il TPA, clicca "Controlla Verifica"`,
+                    👉 Vai su Minecraft e scrivi:<br>
+                    <code>/tpa VerificatoreBot</code><br><br>
+                    ⚡ Hai solo 5 secondi per completare!`,
                     'success'
                 );
 
                 document.getElementById('verificationSteps').classList.remove('hidden');
                 document.getElementById('accessSection').classList.add('hidden');
+
+                // Avvia il controllo automatico ogni secondo
+                verificationInterval = setInterval(() => {
+                    checkVerification();
+                }, 1000);
+
             } catch (error) {
                 console.error('Errore:', error);
                 showStatus('❌ Errore: ' + error.message, 'error');
@@ -466,9 +478,6 @@
                 return;
             }
 
-            showStatus('🔍 Controllo verifica...', 'info');
-            setLoading('checkBtn', true);
-
             try {
                 // Controlla se l'utente è registrato e ha fatto il TPA
                 const { data: user, error } = await supabase
@@ -479,43 +488,32 @@
 
                 if (error) {
                     console.error('Errore database:', error);
-                    throw new Error('Errore di connessione al database');
+                    return;
                 }
 
-                if (user) {
-                    if (user.tpa_requested) {
-                        // Verifica completata
-                        isVerified = true;
-                        showStatus(
-                            '✅ Verifica completata! Clicca "Entra nel Casino" per accedere.',
-                            'success'
-                        );
-
-                        document.getElementById('accessSection').classList.remove('hidden');
-                        document.getElementById('verificationSteps').classList.add('hidden');
-
-                        // Reset tpa_requested per la prossima verifica
-                        await supabase
-                            .from('players')
-                            .update({ tpa_requested: false })
-                            .eq('username', currentUsername);
-                    } else {
-                        showStatus(
-                            '❌ Devi prima inviare il comando /tpa VerificatoreBot in Minecraft.',
-                            'error'
-                        );
-                    }
-                } else {
+                if (user && user.tpa_requested) {
+                    // Verifica completata
+                    isVerified = true;
                     showStatus(
-                        '❌ Utente non ancora verificato. Hai fatto /tpa VerificatoreBot?',
-                        'error'
+                        '✅ Verifica completata! Clicca "Entra nel Casino" per accedere.',
+                        'success'
                     );
+
+                    document.getElementById('accessSection').classList.remove('hidden');
+                    document.getElementById('verificationSteps').classList.add('hidden');
+
+                    // Ferma il controllo automatico
+                    if (verificationInterval) {
+                        clearInterval(verificationInterval);
+                        verificationInterval = null;
+                    }
+                    
+                } else {
+                    showStatus('❌ In attesa di verifica... Scrivi <code>/tpa VerificatoreBot</code> su Minecraft', 'info');
                 }
+
             } catch (error) {
                 console.error('Errore:', error);
-                showStatus('❌ Errore: ' + error.message, 'error');
-            } finally {
-                setLoading('checkBtn', false);
             }
         }
 
@@ -525,60 +523,70 @@
                 return;
             }
 
-
-        alert('🎉 Accesso consentito! Redirect al casino...');
-        resetAll();
-        
-        // window.location.href = 'casino.html';
-    }
-
-    function resetVerification() {
-        document.getElementById('verificationSteps').classList.add('hidden');
-        document.getElementById('status').classList.add('hidden');
-        
-        showStatus('🔄 Verifica annullata. Puoi ricominciare.', 'info');
-    }
-
-    function resetAll() {
-        currentUsername = null;
-        isVerified = false;
-        
-        document.getElementById('verificationSteps').classList.add('hidden');
-        document.getElementById('accessSection').classList.add('hidden');
-        document.getElementById('status').classList.add('hidden');
-        document.getElementById('usernameInput').value = '';
-    }
-
-    function setLoading(buttonId, isLoading) {
-        const btn = document.getElementById(buttonId);
-        if (!btn) return;
-        
-        if (isLoading) {
-            btn.innerHTML = '<span class="loader"></span> ' + btn.textContent;
-            btn.disabled = true;
-        } else {
-            btn.querySelector('.loader')?.remove();
-            btn.disabled = false;
+            alert('🎉 Accesso consentito! Redirect al casino...');
+            resetAll();
+            
+            // window.location.href = 'casino.html';
         }
-    }
 
-    function showStatus(message, type) {
-        const statusDiv = document.getElementById('status');
-        statusDiv.innerHTML = message;
-        statusDiv.className = `${type}`;
-        statusDiv.classList.remove('hidden');
-    }
+        function resetVerification() {
+            document.getElementById('verificationSteps').classList.add('hidden');
+            document.getElementById('status').classList.add('hidden');
+            
+            // Ferma il controllo automatico
+            if (verificationInterval) {
+                clearInterval(verificationInterval);
+                verificationInterval = null;
+            }
+            
+            showStatus('🔄 Verifica annullata. Puoi ricominciare.', 'info');
+        }
 
-    function isValidMinecraftUsername(username) {
-        const regex = /^[a-zA-Z0-9_]{3,16}$/;
-        return regex.test(username);
-    }
+        function resetAll() {
+            currentUsername = null;
+            isVerified = false;
+            
+            // Ferma il controllo automatico
+            if (verificationInterval) {
+                clearInterval(verificationInterval);
+                verificationInterval = null;
+            }
+            
+            document.getElementById('verificationSteps').classList.add('hidden');
+            document.getElementById('accessSection').classList.add('hidden');
+            document.getElementById('status').classList.add('hidden');
+            document.getElementById('usernameInput').value = '';
+        }
 
-    // Permetti di premere INVIO
-    document.getElementById('usernameInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') startVerification();
-    });
-  </script>
+        function setLoading(buttonId, isLoading) {
+            const btn = document.getElementById(buttonId);
+            if (!btn) return;
+            
+            if (isLoading) {
+                btn.innerHTML = '<span class="loader"></span> ' + btn.textContent;
+                btn.disabled = true;
+            } else {
+                btn.querySelector('.loader')?.remove();
+                btn.disabled = false;
+            }
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = message;
+            statusDiv.className = `${type}`;
+            statusDiv.classList.remove('hidden');
+        }
+
+        function isValidMinecraftUsername(username) {
+            const regex = /^[a-zA-Z0-9_]{3,16}$/;
+            return regex.test(username);
+        }
+
+        // Permetti di premere INVIO
+        document.getElementById('usernameInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') startVerification();
+        });
+    </script>
 </body>
 </html>
-
