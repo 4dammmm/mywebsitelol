@@ -7,6 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
+        /* Tutti gli stili CSS rimangono invariati */
         :root {
             --frame-border: #11023F;
             --blue: #0052a5;
@@ -335,8 +336,8 @@
             <h2>🎰 Accesso DonutCasino</h2>
             
             <div class="security-notice">
-                <h4>🔒 Sicurezza Rafforzata</h4>
-                <p>Il tuo account è protetto da verifica tramite Minecraft. Non condividere mai il codice di verifica con altri.</p>
+                <h4>🔒 Verifica in Due Fasi</h4>
+                <p>Devi verificare il tuo account tramite Minecraft prima di essere registrato.</p>
             </div>
 
             <div class="input-group">
@@ -344,7 +345,7 @@
                 <input type="text" id="usernameInput" placeholder="Inserisci il tuo username" autocomplete="off" />
             </div>
             
-            <button onclick="createSession()" id="createSessionBtn">🎯 Genera Codice di Verifica</button>
+            <button onclick="initiateVerification()" id="initiateBtn">🎯 Inizia Verifica</button>
             
             <div id="status" class="hidden"></div>
             
@@ -355,7 +356,7 @@
                         <li>Entra sul server Minecraft <strong>donutsmp.net</strong></li>
                         <li>Scrivi in chat: <code>/tpa VerificatoreBot</code></li>
                         <li>Attendi la conferma del bot</li>
-                        <li>Torna qui e clicca "Verifica Accesso"</li>
+                        <li>Torna qui e clicca "Completa Registrazione"</li>
                     </ol>
                 </div>
                 
@@ -363,13 +364,13 @@
                     <div class="progress-fill" id="progressFill"></div>
                 </div>
                 
-                <button onclick="checkVerification()" id="verifyBtn">🔄 Verifica Accesso</button>
-                <button onclick="clearSession()" class="secondary">🗑️ Cancella Sessione</button>
+                <button onclick="completeRegistration()" id="completeBtn">✅ Completa Registrazione</button>
+                <button onclick="cancelVerification()" class="secondary">❌ Annulla Verifica</button>
             </div>
             
             <div id="verifiedStatus" class="hidden">
-                <h3>✅ Accesso Consentito!</h3>
-                <p>La tua sessione è stata verificata con successo</p>
+                <h3>✅ Registrazione Completata!</h3>
+                <p>Il tuo account è stato verificato con successo</p>
                 <button onclick="enterCasino()">🎲 Entra nel Casino</button>
                 <button onclick="clearSession()" class="secondary">🗑️ Cancella Sessione</button>
             </div>
@@ -390,8 +391,8 @@
     let verificationInterval = null;
     let progressInterval = null;
 
-    // Funzione per creare una sessione di verifica
-    async function createSession() {
+    // Funzione per iniziare la verifica
+    async function initiateVerification() {
         const username = document.getElementById('usernameInput').value.trim();
         if (!username) {
             showStatus('❌ Inserisci un username valido', 'error');
@@ -404,151 +405,176 @@
             return;
         }
 
-        showStatus('⏳ Creazione sessione in corso...', 'info');
-        setLoading('createSessionBtn', true);
+        showStatus('⏳ Controllo username...', 'info');
+        setLoading('initiateBtn', true);
 
         try {
-            // Genera un token di sessione semplice
-            const sessionToken = generateSimpleToken();
-            
             // Controlla se l'utente esiste già nel database
             const { data: existingUser, error: searchError } = await supabase
                 .from('players')
-                .select('username, token, created_at')
+                .select('username, verified')
                 .eq('username', username.toLowerCase())
-                .single();
+                .maybeSingle();
 
             if (searchError && searchError.code !== 'PGRST116') {
-                // PGRST116 è "nessun risultato trovato", altri errori sono problemi reali
                 throw new Error('Errore nel controllo utente: ' + searchError.message);
             }
 
             if (existingUser) {
-                // Utente esistente: aggiorna solo il token di sessione
-                const { error: updateError } = await supabase
-                    .from('players')
-                    .update({ 
-                        token: sessionToken
-                    })
-                    .eq('username', username.toLowerCase());
-
-                if (updateError) throw new Error('Errore aggiornamento utente: ' + updateError.message);
-                
-                showStatus('✅ Token aggiornato per utente esistente!', 'success');
-            } else {
-                // Nuovo utente: crea record
-                const { error: insertError } = await supabase
-                    .from('players')
-                    .insert([{
-                        username: username.toLowerCase(),
-                        token: sessionToken
-                    }]);
-
-                if (insertError) throw new Error('Errore creazione utente: ' + insertError.message);
-                
-                showStatus('✅ Nuovo utente registrato!', 'success');
+                if (existingUser.verified) {
+                    showStatus('✅ Account già verificato. Puoi accedere direttamente.', 'success');
+                    // Carica i dati esistenti
+                    loadExistingUser(username);
+                    return;
+                } else {
+                    showStatus('❌ Account già esistente ma non verificato. Contatta l\'assistenza.', 'error');
+                    return;
+                }
             }
 
-            // Salva in localStorage
-            localStorage.setItem('casino_session', JSON.stringify({
-                token: sessionToken,
-                username: username
-            }));
-            
-            currentSessionToken = sessionToken;
+            // Genera un token di sessione temporaneo
+            currentSessionToken = generateSimpleToken();
             currentUsername = username;
 
+            // Salva in localStorage per la sessione
+            localStorage.setItem('pending_verification', JSON.stringify({
+                token: currentSessionToken,
+                username: username,
+                timestamp: Date.now()
+            }));
+
             showStatus(
-                `✅ Sessione creata!<br><br>
+                `✅ Verifica iniziata!<br><br>
                 👉 Vai su Minecraft e scrivi:<br>
                 <code>/tpa VerificatoreBot</code><br><br>
-                ⏳ Attendi la verifica...`,
+                ⏳ Dopo aver fatto il TPA, clicca "Completa Registrazione"`,
                 'success'
             );
 
             document.getElementById('verificationSteps').classList.remove('hidden');
-            startVerificationCheck();
+            document.getElementById('initiateBtn').disabled = true;
 
         } catch (error) {
             console.error('Errore:', error);
             showStatus('❌ Errore: ' + error.message, 'error');
         } finally {
-            setLoading('createSessionBtn', false);
+            setLoading('initiateBtn', false);
         }
     }
 
-    // Funzione semplificata per verificare lo stato
-    async function checkVerificationStatus() {
-        if (!currentSessionToken) return { verified: false, error: 'No session token' };
+    // Funzione per completare la registrazione dopo la verifica
+    async function completeRegistration() {
+        if (!currentSessionToken || !currentUsername) {
+            showStatus('❌ Nessuna verifica in corso', 'error');
+            return;
+        }
+
+        showStatus('🔍 Verifica in corso...', 'info');
+        setLoading('completeBtn', true);
 
         try {
-            const { data, error } = await supabase
+            // Controlla se l'utente è stato verificato dal bot
+            const { data: verifiedUser, error: verificationError } = await supabase
                 .from('players')
-                .select('username, token')
+                .select('username, verified, verified_at')
                 .eq('username', currentUsername.toLowerCase())
                 .single();
 
-            if (error) throw error;
-            
-            // Verifica se il token corrisponde
-            // Nella struttura semplificata, se l'utente esiste ed ha lo stesso token
-            // significa che è stato verificato (il bot ha accettato il TPA)
-            if (data.token === currentSessionToken) {
-                return { verified: true };
-            } else {
-                return { verified: false, error: 'Token mismatch' };
+            if (verificationError) {
+                if (verificationError.code === 'PGRST116') {
+                    showStatus('❌ Utente non ancora verificato. Hai fatto /tpa VerificatoreBot?', 'error');
+                } else {
+                    throw new Error('Errore verifica: ' + verificationError.message);
+                }
+                return;
             }
+
+            if (verifiedUser && verifiedUser.verified) {
+                // Registra l'utente definitivamente
+                const { error: insertError } = await supabase
+                    .from('players')
+                    .insert([{
+                        username: currentUsername.toLowerCase(),
+                        token: currentSessionToken,
+                        verified: true,
+                        verified_at: new Date().toISOString()
+                    }]);
+
+                if (insertError) {
+                    if (insertError.code === '23505') { // Violazione unique constraint
+                        showStatus('✅ Account già registrato. Accesso consentito.', 'success');
+                    } else {
+                        throw new Error('Errore registrazione: ' + insertError.message);
+                    }
+                } else {
+                    showStatus('✅ Registrazione completata con successo!', 'success');
+                }
+
+                // Salva in localStorage per accesso futuro
+                localStorage.setItem('casino_session', JSON.stringify({
+                    token: currentSessionToken,
+                    username: currentUsername
+                }));
+
+                localStorage.removeItem('pending_verification');
+                showVerifiedUI();
+
+            } else {
+                showStatus('❌ Utente non verificato. Hai fatto /tpa VerificatoreBot?', 'error');
+            }
+
         } catch (error) {
-            console.error('Errore verifica:', error);
-            return { verified: false, error: error.message };
+            console.error('Errore:', error);
+            showStatus('❌ Errore: ' + error.message, 'error');
+        } finally {
+            setLoading('completeBtn', false);
         }
     }
 
-    // Funzione per verificare l'accesso
-    async function checkVerification() {
-        showStatus('🔍 Controllo verifica in corso...', 'info');
-        setLoading('verifyBtn', true);
-        
-        const result = await checkVerificationStatus();
-        if (result.verified) {
-            showVerifiedUI();
-        } else {
-            showStatus(`❌ Sessione non verificata. ${result.error || 'Hai fatto /tpa VerificatoreBot?'}`, 'error');
-        }
-        setLoading('verifyBtn', false);
-    }
+    // Carica un utente esistente
+    async function loadExistingUser(username) {
+        try {
+            const { data: user, error } = await supabase
+                .from('players')
+                .select('username, token, verified')
+                .eq('username', username.toLowerCase())
+                .single();
 
-    function startVerificationCheck() {
-        if (verificationInterval) clearInterval(verificationInterval);
-        if (progressInterval) clearInterval(progressInterval);
-        
-        let progress = 0;
-        updateProgressBar(progress);
-        
-        progressInterval = setInterval(() => {
-            progress = (progress + 1) % 100;
-            updateProgressBar(progress);
-        }, 100);
-        
-        verificationInterval = setInterval(async () => {
-            const result = await checkVerificationStatus();
-            if (result.verified) {
-                clearInterval(verificationInterval);
-                clearInterval(progressInterval);
-                updateProgressBar(100);
+            if (error) throw error;
+
+            if (user && user.verified) {
+                currentSessionToken = user.token;
+                currentUsername = user.username;
+
+                // Salva in localStorage
+                localStorage.setItem('casino_session', JSON.stringify({
+                    token: currentSessionToken,
+                    username: currentUsername
+                }));
+
                 showVerifiedUI();
             }
-        }, 3000);
+        } catch (error) {
+            console.error('Errore caricamento utente:', error);
+            showStatus('❌ Errore nel caricamento utente', 'error');
+        }
     }
 
-    function showVerifiedUI() {
-        document.getElementById('verifiedStatus').classList.remove('hidden');
+    function cancelVerification() {
+        localStorage.removeItem('pending_verification');
+        currentSessionToken = null;
+        currentUsername = null;
+        
         document.getElementById('verificationSteps').classList.add('hidden');
         document.getElementById('status').classList.add('hidden');
+        document.getElementById('initiateBtn').disabled = false;
+        
+        showStatus('❌ Verifica annullata. Puoi iniziare una nuova verifica.', 'info');
     }
 
     function clearSession() {
         localStorage.removeItem('casino_session');
+        localStorage.removeItem('pending_verification');
         currentSessionToken = null;
         currentUsername = null;
         
@@ -556,6 +582,7 @@
         document.getElementById('verificationSteps').classList.add('hidden');
         document.getElementById('status').classList.add('hidden');
         document.getElementById('usernameInput').value = '';
+        document.getElementById('initiateBtn').disabled = false;
         
         showStatus('🗑️ Sessione cancellata. Puoi crearne una nuova.', 'info');
     }
@@ -575,20 +602,13 @@
         } else {
             btn.querySelector('.loader')?.remove();
             btn.disabled = false;
-            
-            if (buttonId === 'createSessionBtn') {
-                btn.innerHTML = '🎯 Genera Codice di Verifica';
-            } else if (buttonId === 'verifyBtn') {
-                btn.innerHTML = '🔄 Verifica Accesso';
-            }
         }
     }
 
-    function updateProgressBar(percentage) {
-        const progressFill = document.getElementById('progressFill');
-        if (progressFill) {
-            progressFill.style.width = percentage + '%';
-        }
+    function showVerifiedUI() {
+        document.getElementById('verifiedStatus').classList.remove('hidden');
+        document.getElementById('verificationSteps').classList.add('hidden');
+        document.getElementById('status').classList.add('hidden');
     }
 
     function showStatus(message, type) {
@@ -610,14 +630,30 @@
     // Carica sessione esistente all'avvio
     window.addEventListener('DOMContentLoaded', function() {
         try {
+            // Prima controlla se c'è una sessione verificata
             const sessionData = JSON.parse(localStorage.getItem('casino_session'));
             if (sessionData && sessionData.token && sessionData.username) {
                 currentSessionToken = sessionData.token;
                 currentUsername = sessionData.username;
                 document.getElementById('usernameInput').value = currentUsername;
-                document.getElementById('verificationSteps').classList.remove('hidden');
-                startVerificationCheck();
-                showStatus('🔄 Sessione trovata. Verifica in corso...', 'info');
+                loadExistingUser(currentUsername);
+                return;
+            }
+
+            // Poi controlla se c'è una verifica in sospeso
+            const pendingData = JSON.parse(localStorage.getItem('pending_verification'));
+            if (pendingData && pendingData.token && pendingData.username) {
+                // Verifica che non sia scaduta (max 10 minuti)
+                if (Date.now() - pendingData.timestamp < 600000) {
+                    currentSessionToken = pendingData.token;
+                    currentUsername = pendingData.username;
+                    document.getElementById('usernameInput').value = currentUsername;
+                    document.getElementById('verificationSteps').classList.remove('hidden');
+                    document.getElementById('initiateBtn').disabled = true;
+                    showStatus('🔄 Verifica in sospeso. Completa la registrazione.', 'info');
+                } else {
+                    localStorage.removeItem('pending_verification');
+                }
             }
         } catch (e) {
             console.error("Errore nel caricamento sessione:", e);
@@ -626,7 +662,7 @@
 
     // Permetti di premere INVIO
     document.getElementById('usernameInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') createSession();
+        if (e.key === 'Enter') initiateVerification();
     });
   </script>
 </body>
