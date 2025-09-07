@@ -216,12 +216,14 @@
                     </ol>
                 </div>
                 <button onclick="checkVerification()">🔄 Verifica Accesso</button>
+                <button onclick="debugSessions()" class="secondary">🐛 Debug Sessioni</button>
             </div>
             
             <div id="verifiedStatus" class="hidden">
                 <h3>✅ Accesso Consentito!</h3>
                 <p>La tua sessione è stata verificata</p>
                 <button onclick="enterCasino()">🎲 Entra nel Casino</button>
+                <button onclick="clearSession()" class="secondary">🗑️ Cancella Sessione</button>
             </div>
           </div>
         </div>
@@ -236,6 +238,7 @@
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let currentSessionToken = localStorage.getItem('casino_session_token');
+    let currentUsername = localStorage.getItem('casino_username');
     let verificationInterval = null;
 
     // Controlla sessione esistente all'avvio
@@ -281,6 +284,7 @@
             localStorage.setItem('casino_session_token', sessionToken);
             localStorage.setItem('casino_username', username);
             currentSessionToken = sessionToken;
+            currentUsername = username;
 
             showStatus(
                 `✅ Sessione creata!<br><br>
@@ -328,6 +332,7 @@
             localStorage.setItem('casino_session_token', sessionToken);
             localStorage.setItem('casino_username', username);
             currentSessionToken = sessionToken;
+            currentUsername = username;
 
             showStatus(
                 `✅ Sessione creata!<br><br>
@@ -346,48 +351,77 @@
         }
     }
 
-    function generateSessionToken() {
-        return 'session_' + Math.random().toString(36).substr(2, 16) + '_' + Date.now().toString(36);
-    }
-
-    async function startVerificationCheck() {
-        if (verificationInterval) clearInterval(verificationInterval);
-        
-        verificationInterval = setInterval(async () => {
-            const isVerified = await checkVerificationStatus();
-            if (isVerified) {
-                clearInterval(verificationInterval);
-                showVerifiedUI();
-            }
-        }, 3000);
-    }
-
+    // 🔥 FUNZIONE DI VERIFICA AGGIORNATA
     async function checkVerificationStatus() {
-        if (!currentSessionToken) return false;
-
-        const { data: session, error } = await supabase
-            .from('player_sessions')
-            .select('is_verified, expires_at')
-            .eq('session_token', currentSessionToken)
-            .single();
-
-        if (error) {
-            console.error('Errore verifica:', error);
-            return false;
+        if (!currentSessionToken) {
+            console.log('❌ Nessun token di sessione trovato');
+            return { verified: false, error: 'No session token' };
         }
 
-        return session && session.is_verified && new Date(session.expires_at) > new Date();
+        try {
+            console.log('🔍 Controllo sessione:', currentSessionToken);
+            
+            const { data: session, error } = await supabase
+                .from('player_sessions')
+                .select('is_verified, expires_at, verified_at, created_at, minecraft_username')
+                .eq('session_token', currentSessionToken)
+                .single();
+
+            if (error) {
+                console.error('❌ Errore database:', error);
+                return { verified: false, error: error.message };
+            }
+
+            if (!session) {
+                console.log('❌ Sessione non trovata nel database');
+                return { verified: false, error: 'Session not found' };
+            }
+
+            console.log('📊 Dati sessione:', session);
+
+            // Controlla se la sessione è scaduta
+            const isExpired = new Date(session.expires_at) < new Date();
+            if (isExpired) {
+                console.log('❌ Sessione scaduta');
+                return { verified: false, error: 'Session expired' };
+            }
+
+            // Controlla se è verificata
+            if (session.is_verified) {
+                console.log('✅ Sessione verificata!');
+                return { verified: true, session: session };
+            } else {
+                console.log('❌ Sessione non ancora verificata');
+                return { verified: false, error: 'Not verified yet' };
+            }
+
+        } catch (error) {
+            console.error('❌ Errore durante il check:', error);
+            return { verified: false, error: error.message };
+        }
     }
 
     async function checkVerification() {
         showStatus('🔍 Controllo verifica in corso...', 'info');
         
-        const isVerified = await checkVerificationStatus();
-        if (isVerified) {
+        const result = await checkVerificationStatus();
+        if (result.verified) {
             showVerifiedUI();
         } else {
-            showStatus('❌ Sessione non ancora verificata. Hai fatto /tpa VerificatoreBot?', 'error');
+            showStatus(`❌ Sessione non verificata. ${result.error || 'Hai fatto /tpa VerificatoreBot?'}`, 'error');
         }
+    }
+
+    function startVerificationCheck() {
+        if (verificationInterval) clearInterval(verificationInterval);
+        
+        verificationInterval = setInterval(async () => {
+            const result = await checkVerificationStatus();
+            if (result.verified) {
+                clearInterval(verificationInterval);
+                showVerifiedUI();
+            }
+        }, 3000);
     }
 
     function showVerifiedUI() {
@@ -397,18 +431,69 @@
     }
 
     async function checkExistingSession() {
-        if (!currentSessionToken) return;
+        if (!currentSessionToken || !currentUsername) return;
 
-        const isVerified = await checkVerificationStatus();
-        if (isVerified) {
+        const result = await checkVerificationStatus();
+        if (result.verified) {
             document.getElementById('verifiedStatus').classList.remove('hidden');
-            document.getElementById('usernameInput').value = localStorage.getItem('casino_username') || '';
+            document.getElementById('usernameInput').value = currentUsername;
+        } else {
+            document.getElementById('verificationSteps').classList.remove('hidden');
+            document.getElementById('usernameInput').value = currentUsername;
+            startVerificationCheck();
         }
+    }
+
+    // 🔥 FUNZIONE DEBUG PER CONTROLLARE LE SESSIONI
+    async function debugSessions() {
+        console.log('🐛 Debug sessioni attive...');
+        
+        try {
+            const response = await fetch(SUPABASE_URL + '/rest/v1/player_sessions?select=*', {
+                headers: {
+                    'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+                    'apikey': SUPABASE_ANON_KEY
+                }
+            });
+            
+            const sessions = await response.json();
+            console.log('📊 Tutte le sessioni:', sessions);
+            
+            // Cerca sessioni per l'utente corrente
+            const userSessions = sessions.filter(session => 
+                session.minecraft_username === currentUsername?.toLowerCase()
+            );
+            
+            console.log('🎯 Sessioni utente corrente:', userSessions);
+            showStatus(`🔍 ${userSessions.length} sessioni trovate per ${currentUsername}. Vedi console per dettagli.`, 'info');
+            
+        } catch (error) {
+            console.error('❌ Errore debug:', error);
+            showStatus('❌ Errore durante il debug', 'error');
+        }
+    }
+
+    function clearSession() {
+        localStorage.removeItem('casino_session_token');
+        localStorage.removeItem('casino_username');
+        currentSessionToken = null;
+        currentUsername = null;
+        
+        document.getElementById('verifiedStatus').classList.add('hidden');
+        document.getElementById('verificationSteps').classList.add('hidden');
+        document.getElementById('status').classList.add('hidden');
+        document.getElementById('usernameInput').value = '';
+        
+        showStatus('🗑️ Sessione cancellata. Puoi crearne una nuova.', 'info');
     }
 
     function enterCasino() {
         alert('🎉 Accesso consentito! Redirect al casino...');
         // window.location.href = 'casino.html';
+    }
+
+    function generateSessionToken() {
+        return 'session_' + Math.random().toString(36).substr(2, 16) + '_' + Date.now().toString(36);
     }
 
     function showStatus(message, type) {
