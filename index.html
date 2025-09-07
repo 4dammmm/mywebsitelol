@@ -179,6 +179,13 @@
             background: linear-gradient(90deg, #ffd54f, #ffc107);
             box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
         }
+        button:disabled {
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.4);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
 
         #status {
             margin: 20px 0;
@@ -358,6 +365,8 @@
     let currentUsername = localStorage.getItem('casino_username');
     let verificationInterval = null;
     let progressInterval = null;
+    let lastSessionCreationTime = 0;
+    const SESSION_COOLDOWN = 10000; // 10 secondi di cooldown
 
     // Controlla sessione esistente all'avvio
     window.addEventListener('DOMContentLoaded', function() {
@@ -391,6 +400,32 @@
         }
     }
 
+    async function checkExistingActiveSession(username) {
+        try {
+            const { data: activeSessions, error } = await supabase
+                .from('player_sessions')
+                .select('id, created_at, expires_at, is_verified')
+                .eq('minecraft_username', username.toLowerCase())
+                .gt('expires_at', new Date().toISOString())
+                .order('created_at', { ascending: false })
+                .limit(1);
+
+            if (error) {
+                console.error('Errore nel controllo sessioni attive:', error);
+                return null;
+            }
+
+            if (activeSessions && activeSessions.length > 0) {
+                return activeSessions[0];
+            }
+            
+            return null;
+        } catch (error) {
+            console.error('Errore nel controllo sessioni attive:', error);
+            return null;
+        }
+    }
+
     async function createSession() {
         const username = document.getElementById('usernameInput').value.trim();
         if (!username) {
@@ -404,8 +439,36 @@
             return;
         }
 
+        // Controllo cooldown
+        const now = Date.now();
+        if (now - lastSessionCreationTime < SESSION_COOLDOWN) {
+            const remaining = Math.ceil((SESSION_COOLDOWN - (now - lastSessionCreationTime)) / 1000);
+            showStatus(`⏳ Attendere ${remaining} secondi prima di creare una nuova sessione`, 'warning');
+            return;
+        }
+
+        // Controlla se esiste già una sessione attiva per questo utente
+        const existingSession = await checkExistingActiveSession(username);
+        if (existingSession) {
+            if (existingSession.is_verified) {
+                showStatus('✅ Hai già una sessione verificata attiva', 'success');
+                currentSessionToken = localStorage.getItem('casino_session_token');
+                currentUsername = username;
+                showVerifiedUI();
+                return;
+            } else {
+                showStatus('🔄 Hai già una sessione attiva in attesa di verifica', 'info');
+                currentSessionToken = localStorage.getItem('casino_session_token');
+                currentUsername = username;
+                document.getElementById('verificationSteps').classList.remove('hidden');
+                startVerificationCheck();
+                return;
+            }
+        }
+
         showStatus('⏳ Creazione sessione in corso...', 'info');
         setLoading('createSessionBtn', true);
+        lastSessionCreationTime = now;
 
         try {
             // Ottieni IP dell'utente
