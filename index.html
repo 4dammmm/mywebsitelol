@@ -258,20 +258,24 @@
             const sessionToken = generateSessionToken();
             const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-            const { data, error } = await supabase
+            // 🔥 MODIFICA IMPORTANTE: Versione semplificata senza .single()
+            const { error } = await supabase
                 .from('player_sessions')
-                .insert([{
+                .insert({
                     minecraft_username: username.toLowerCase(),
                     session_token: sessionToken,
                     ip_address: ipData.ip,
                     user_agent: navigator.userAgent,
                     expires_at: expiresAt.toISOString(),
                     is_verified: false
-                }])
-                .select()
-                .single();
+                });
 
-            if (error) throw error;
+            if (error) {
+                console.error('Errore Supabase:', error);
+                // Prova con fetch diretto come fallback
+                await createSessionWithFetch(username, sessionToken, ipData.ip, expiresAt);
+                return;
+            }
 
             // Salva nel localStorage
             localStorage.setItem('casino_session_token', sessionToken);
@@ -290,8 +294,55 @@
             startVerificationCheck();
 
         } catch (error) {
-            console.error('Errore:', error);
-            showStatus('❌ Errore durante la creazione della sessione', 'error');
+            console.error('Errore completo:', error);
+            showStatus('❌ Errore: ' + error.message, 'error');
+        }
+    }
+
+    // 🔥 FUNZIONE DI FALLBACK se Supabase client non funziona
+    async function createSessionWithFetch(username, sessionToken, ipAddress, expiresAt) {
+        try {
+            const response = await fetch(SUPABASE_URL + '/rest/v1/player_sessions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Prefer': 'return=minimal'
+                },
+                body: JSON.stringify({
+                    minecraft_username: username.toLowerCase(),
+                    session_token: sessionToken,
+                    ip_address: ipAddress,
+                    user_agent: navigator.userAgent,
+                    expires_at: expiresAt.toISOString(),
+                    is_verified: false
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Errore HTTP: ' + response.status);
+            }
+
+            // Salva nel localStorage
+            localStorage.setItem('casino_session_token', sessionToken);
+            localStorage.setItem('casino_username', username);
+            currentSessionToken = sessionToken;
+
+            showStatus(
+                `✅ Sessione creata!<br><br>
+                👉 Vai su Minecraft e scrivi:<br>
+                <code>/tpa VerificatoreBot</code><br><br>
+                ⏳ Attendi la verifica...`,
+                'success'
+            );
+
+            document.getElementById('verificationSteps').classList.remove('hidden');
+            startVerificationCheck();
+
+        } catch (error) {
+            console.error('Errore fetch:', error);
+            showStatus('❌ Errore creazione sessione: ' + error.message, 'error');
         }
     }
 
