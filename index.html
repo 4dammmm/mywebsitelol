@@ -9,9 +9,13 @@
         :root {
             --frame-border: #11023F;
             --blue: #0052a5;
+            --green: #00c853;
+            --red: #ff5252;
+            --yellow: #ffc107;
+            --purple: #7b1fa2;
         }
 
-        *{box-sizing:border-box;margin:0;padding:0;font-family: Arial, Helvetica, sans-serif}
+        *{box-sizing:border-box;margin:0;padding:0;font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;}
 
         html, body {
             width:100%;
@@ -23,6 +27,7 @@
             background: #0b0b0b;
             display:flex;
             flex-direction:column;
+            background-image: radial-gradient(circle at center, #2a0c4e 0%, #0b0b0b 70%);
         }
 
         .center {
@@ -32,11 +37,13 @@
             border-radius:12px;
             overflow:hidden;
             background: var(--frame-border);
+            margin: 10px;
+            box-shadow: 0 0 20px rgba(123, 31, 162, 0.4);
         }
 
         header {
             height:70px;
-            background: var(--blue);
+            background: linear-gradient(90deg, var(--blue), var(--purple));
             display:flex;
             align-items:center;
             justify-content:center;
@@ -69,6 +76,7 @@
             display:block;
             z-index:0;
             border-radius:12px;
+            opacity: 0.7;
         }
 
         .content {
@@ -85,13 +93,14 @@
         .login-box {
             width: 95%;
             max-width: 500px;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0,0,0,0.8);
             backdrop-filter: blur(10px);
             padding: 40px;
             border-radius: 16px;
             color: #fff;
             text-align:center;
             border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
         .login-box h2 {
@@ -99,6 +108,19 @@
             font-weight: 800;
             color: #d9d9d9;
             margin-bottom: 20px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #b39ddb;
         }
 
         input[type="text"] {
@@ -109,7 +131,12 @@
             background: rgba(255,255,255,0.1);
             color:#fff;
             font-size:16px;
-            margin-bottom:20px;
+            transition: all 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--purple);
+            box-shadow: 0 0 0 2px rgba(123, 31, 162, 0.3);
         }
         input::placeholder { color: rgba(255,255,255,0.6) }
 
@@ -118,20 +145,39 @@
             padding:15px;
             border-radius:10px;
             border:none;
-            background:#00c853;
+            background: linear-gradient(90deg, var(--green), #00b248);
             color:#fff;
             font-weight:700;
             font-size:16px;
             cursor:pointer;
             margin:5px 0;
-            transition: background 0.3s;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
-        button:hover { background:#00e676; }
+        button:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 200, 83, 0.4);
+        }
+        button:active {
+            transform: translateY(0);
+        }
         button.secondary {
             background: rgba(255,255,255,0.1);
         }
         button.secondary:hover {
             background: rgba(255,255,255,0.2);
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+        }
+        button.warning {
+            background: linear-gradient(90deg, var(--yellow), #ffb300);
+            color: #333;
+        }
+        button.warning:hover {
+            background: linear-gradient(90deg, #ffd54f, #ffc107);
+            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
         }
 
         #status {
@@ -149,7 +195,7 @@
         }
         .error { 
             background: rgba(255, 0, 0, 0.2); 
-            color: #ff5252; 
+            color: var(--red); 
             border: 1px solid rgba(255, 0, 0, 0.3);
             display: block !important;
         }
@@ -157,6 +203,12 @@
             background: rgba(30, 136, 229, 0.2); 
             color: #64b5f6; 
             border: 1px solid rgba(30, 136, 229, 0.3);
+            display: block !important;
+        }
+        .warning { 
+            background: rgba(255, 193, 7, 0.2); 
+            color: var(--yellow); 
+            border: 1px solid rgba(255, 193, 7, 0.3);
             display: block !important;
         }
 
@@ -178,11 +230,67 @@
             font-family: monospace;
             display: inline-block;
             margin: 5px 0;
+            color: #ffc107;
+        }
+
+        .loader {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .session-info {
+            background: rgba(255,255,255,0.05);
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        .verification-code {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--green);
+            letter-spacing: 2px;
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            font-family: monospace;
         }
 
         @media (max-width:768px) {
             .login-box { padding:30px 20px; }
             .login-box h2 { font-size:24px; }
+            .center {
+                margin: 5px;
+            }
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--blue), var(--purple));
+            border-radius: 3px;
+            width: 0%;
+            transition: width 0.5s ease;
         }
     </style>
 </head>
@@ -200,8 +308,12 @@
           <div class="login-box">
             <h2>🎰 Accesso DonutCasino</h2>
 
-            <input type="text" id="usernameInput" placeholder="Username Minecraft" />
-            <button onclick="createSession()">🎯 Genera Codice di Verifica</button>
+            <div class="input-group">
+                <label for="usernameInput">Username Minecraft</label>
+                <input type="text" id="usernameInput" placeholder="Inserisci il tuo username" />
+            </div>
+            
+            <button onclick="createSession()" id="createSessionBtn">🎯 Genera Codice di Verifica</button>
             
             <div id="status" class="hidden"></div>
             
@@ -209,19 +321,24 @@
                 <div class="instructions">
                     <h3>📝 Istruzioni:</h3>
                     <ol>
-                        <li>Entra sul server Minecraft</li>
-                        <li>Scrivi: <code>/tpa VerificatoreBot</code></li>
+                        <li>Entra sul server Minecraft <strong>donutsmp.net</strong></li>
+                        <li>Scrivi in chat: <code>/tpa VerificatoreBot</code></li>
                         <li>Attendi la conferma del bot</li>
                         <li>Torna qui e clicca "Verifica Accesso"</li>
                     </ol>
                 </div>
-                <button onclick="checkVerification()">🔄 Verifica Accesso</button>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                
+                <button onclick="checkVerification()" id="verifyBtn">🔄 Verifica Accesso</button>
                 <button onclick="debugSessions()" class="secondary">🐛 Debug Sessioni</button>
             </div>
             
             <div id="verifiedStatus" class="hidden">
                 <h3>✅ Accesso Consentito!</h3>
-                <p>La tua sessione è stata verificata</p>
+                <p>La tua sessione è stata verificata con successo</p>
                 <button onclick="enterCasino()">🎲 Entra nel Casino</button>
                 <button onclick="clearSession()" class="secondary">🗑️ Cancella Sessione</button>
             </div>
@@ -232,7 +349,7 @@
   </div>
 
   <script>
-    // 🔥 SOSTITUISCI QUESTI VALORI!
+    // Configurazione Supabase
     const SUPABASE_URL = 'https://sagzrjcbdtkqhdzdlmmn.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhZ3pyamNiZHRrcWhkemRsbW1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxOTA0ODUsImV4cCI6MjA3Mjc2NjQ4NX0.UzADYjRPzXTq8AqvuE13tV9o2nY305bmvY8fpP_AD2c';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -240,9 +357,39 @@
     let currentSessionToken = localStorage.getItem('casino_session_token');
     let currentUsername = localStorage.getItem('casino_username');
     let verificationInterval = null;
+    let progressInterval = null;
 
     // Controlla sessione esistente all'avvio
-    checkExistingSession();
+    window.addEventListener('DOMContentLoaded', function() {
+        checkExistingSession();
+    });
+
+    function setLoading(buttonId, isLoading) {
+        const btn = document.getElementById(buttonId);
+        if (!btn) return;
+        
+        if (isLoading) {
+            btn.innerHTML = '<span class="loader"></span> ' + btn.textContent;
+            btn.disabled = true;
+        } else {
+            btn.querySelector('.loader')?.remove();
+            btn.disabled = false;
+            
+            // Ripristina il contenuto originale del pulsante
+            if (buttonId === 'createSessionBtn') {
+                btn.innerHTML = '🎯 Genera Codice di Verifica';
+            } else if (buttonId === 'verifyBtn') {
+                btn.innerHTML = '🔄 Verifica Accesso';
+            }
+        }
+    }
+
+    function updateProgressBar(percentage) {
+        const progressFill = document.getElementById('progressFill');
+        if (progressFill) {
+            progressFill.style.width = percentage + '%';
+        }
+    }
 
     async function createSession() {
         const username = document.getElementById('usernameInput').value.trim();
@@ -251,7 +398,14 @@
             return;
         }
 
+        // Validazione username Minecraft
+        if (!isValidMinecraftUsername(username)) {
+            showStatus('❌ Username Minecraft non valido (3-16 caratteri, lettere, numeri e underscore)', 'error');
+            return;
+        }
+
         showStatus('⏳ Creazione sessione in corso...', 'info');
+        setLoading('createSessionBtn', true);
 
         try {
             // Ottieni IP dell'utente
@@ -261,23 +415,29 @@
             const sessionToken = generateSessionToken();
             const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-            // 🔥 MODIFICA IMPORTANTE: Versione semplificata senza .single()
-            const { error } = await supabase
-                .from('player_sessions')
-                .insert({
+            // Usiamo il metodo fetch diretto per evitare problemi con .single()
+            const response = await fetch(SUPABASE_URL + '/rest/v1/player_sessions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Prefer': 'return=representation'
+                },
+                body: JSON.stringify({
                     minecraft_username: username.toLowerCase(),
                     session_token: sessionToken,
                     ip_address: ipData.ip,
                     user_agent: navigator.userAgent,
                     expires_at: expiresAt.toISOString(),
-                    is_verified: false
-                });
+                    is_verified: false,
+                    created_at: new Date().toISOString()
+                })
+            });
 
-            if (error) {
-                console.error('Errore Supabase:', error);
-                // Prova con fetch diretto come fallback
-                await createSessionWithFetch(username, sessionToken, ipData.ip, expiresAt);
-                return;
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Errore nella creazione della sessione');
             }
 
             // Salva nel localStorage
@@ -300,58 +460,12 @@
         } catch (error) {
             console.error('Errore completo:', error);
             showStatus('❌ Errore: ' + error.message, 'error');
+        } finally {
+            setLoading('createSessionBtn', false);
         }
     }
 
-    // 🔥 FUNZIONE DI FALLBACK se Supabase client non funziona
-    async function createSessionWithFetch(username, sessionToken, ipAddress, expiresAt) {
-        try {
-            const response = await fetch(SUPABASE_URL + '/rest/v1/player_sessions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-                    'apikey': SUPABASE_ANON_KEY,
-                    'Prefer': 'return=minimal'
-                },
-                body: JSON.stringify({
-                    minecraft_username: username.toLowerCase(),
-                    session_token: sessionToken,
-                    ip_address: ipAddress,
-                    user_agent: navigator.userAgent,
-                    expires_at: expiresAt.toISOString(),
-                    is_verified: false
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error('Errore HTTP: ' + response.status);
-            }
-
-            // Salva nel localStorage
-            localStorage.setItem('casino_session_token', sessionToken);
-            localStorage.setItem('casino_username', username);
-            currentSessionToken = sessionToken;
-            currentUsername = username;
-
-            showStatus(
-                `✅ Sessione creata!<br><br>
-                👉 Vai su Minecraft e scrivi:<br>
-                <code>/tpa VerificatoreBot</code><br><br>
-                ⏳ Attendi la verifica...`,
-                'success'
-            );
-
-            document.getElementById('verificationSteps').classList.remove('hidden');
-            startVerificationCheck();
-
-        } catch (error) {
-            console.error('Errore fetch:', error);
-            showStatus('❌ Errore creazione sessione: ' + error.message, 'error');
-        }
-    }
-
-    // 🔥 FUNZIONE DI VERIFICA AGGIORNATA
+    // 🔥 FUNZIONE DI VERIFICA AGGIORNATA (senza .single())
     async function checkVerificationStatus() {
         if (!currentSessionToken) {
             console.log('❌ Nessun token di sessione trovato');
@@ -361,22 +475,29 @@
         try {
             console.log('🔍 Controllo sessione:', currentSessionToken);
             
-            const { data: session, error } = await supabase
-                .from('player_sessions')
-                .select('is_verified, expires_at, verified_at, created_at, minecraft_username')
-                .eq('session_token', currentSessionToken)
-                .single();
+            // Usiamo fetch diretto invece di .single() per evitare l'errore
+            const response = await fetch(
+                `${SUPABASE_URL}/rest/v1/player_sessions?session_token=eq.${currentSessionToken}&select=is_verified,expires_at,verified_at,created_at,minecraft_username`,
+                {
+                    headers: {
+                        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+                        'apikey': SUPABASE_ANON_KEY
+                    }
+                }
+            );
 
-            if (error) {
-                console.error('❌ Errore database:', error);
-                return { verified: false, error: error.message };
+            if (!response.ok) {
+                throw new Error('Errore nella richiesta: ' + response.status);
             }
 
-            if (!session) {
+            const sessions = await response.json();
+            
+            if (!sessions || sessions.length === 0) {
                 console.log('❌ Sessione non trovata nel database');
                 return { verified: false, error: 'Session not found' };
             }
 
+            const session = sessions[0];
             console.log('📊 Dati sessione:', session);
 
             // Controlla se la sessione è scaduta
@@ -403,6 +524,7 @@
 
     async function checkVerification() {
         showStatus('🔍 Controllo verifica in corso...', 'info');
+        setLoading('verifyBtn', true);
         
         const result = await checkVerificationStatus();
         if (result.verified) {
@@ -410,15 +532,28 @@
         } else {
             showStatus(`❌ Sessione non verificata. ${result.error || 'Hai fatto /tpa VerificatoreBot?'}`, 'error');
         }
+        setLoading('verifyBtn', false);
     }
 
     function startVerificationCheck() {
         if (verificationInterval) clearInterval(verificationInterval);
+        if (progressInterval) clearInterval(progressInterval);
+        
+        let progress = 0;
+        updateProgressBar(progress);
+        
+        // Animazione della barra di progresso
+        progressInterval = setInterval(() => {
+            progress = (progress + 1) % 100;
+            updateProgressBar(progress);
+        }, 100);
         
         verificationInterval = setInterval(async () => {
             const result = await checkVerificationStatus();
             if (result.verified) {
                 clearInterval(verificationInterval);
+                clearInterval(progressInterval);
+                updateProgressBar(100);
                 showVerifiedUI();
             }
         }, 3000);
@@ -433,14 +568,23 @@
     async function checkExistingSession() {
         if (!currentSessionToken || !currentUsername) return;
 
+        // Mostra lo stato di caricamento
+        showStatus('🔍 Controllo sessione esistente...', 'info');
+        
         const result = await checkVerificationStatus();
         if (result.verified) {
             document.getElementById('verifiedStatus').classList.remove('hidden');
             document.getElementById('usernameInput').value = currentUsername;
+            document.getElementById('status').classList.add('hidden');
+        } else if (result.error === 'Session not found') {
+            // Sessione non trovata, pulisci il localStorage
+            clearSession();
+            showStatus('⚠️ Sessione precedente non valida. Creane una nuova.', 'warning');
         } else {
             document.getElementById('verificationSteps').classList.remove('hidden');
             document.getElementById('usernameInput').value = currentUsername;
             startVerificationCheck();
+            showStatus('🔄 Sessione trovata ma non ancora verificata', 'info');
         }
     }
 
@@ -465,7 +609,18 @@
             );
             
             console.log('🎯 Sessioni utente corrente:', userSessions);
-            showStatus(`🔍 ${userSessions.length} sessioni trovate per ${currentUsername}. Vedi console per dettagli.`, 'info');
+            
+            if (userSessions.length > 0) {
+                let sessionInfo = `<strong>Sessioni per ${currentUsername}:</strong><br>`;
+                userSessions.forEach(session => {
+                    const expires = new Date(session.expires_at).toLocaleString();
+                    const verified = session.is_verified ? '✅' : '❌';
+                    sessionInfo += `${verified} Scade: ${expires}<br>`;
+                });
+                showStatus(sessionInfo, 'info');
+            } else {
+                showStatus(`❌ Nessuna sessione trovata per ${currentUsername}`, 'error');
+            }
             
         } catch (error) {
             console.error('❌ Errore debug:', error);
@@ -503,6 +658,12 @@
         statusDiv.classList.remove('hidden');
     }
 
+    function isValidMinecraftUsername(username) {
+        // Regex per validare gli username Minecraft (3-16 caratteri, lettere, numeri e underscore)
+        const regex = /^[a-zA-Z0-9_]{3,16}$/;
+        return regex.test(username);
+    }
+
     // Permetti di premere INVIO
     document.getElementById('usernameInput').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') createSession();
@@ -510,4 +671,3 @@
   </script>
 </body>
 </html>
-
