@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DonutCasino - Accesso</title>
     <style>
+        /* Mantieni gli stili CSS esistenti */
         :root {
             --frame-border: #11023F;
             --blue: #0052a5;
@@ -117,7 +118,6 @@
             margin: 15px 0;
             text-align: left;
         }
-        
         code {
             background: rgba(0,0,0,0.3);
             padding: 8px 12px;
@@ -195,25 +195,33 @@
             <h2>🎰 Accesso DonutCasino</h2>
             
             <div class="security-notice">
-                <h4>🔒 Accesso Sicuro tramite Minecraft</h4>
-                <p>Per accedere al casino, connettiti al server Minecraft e richiedi il teletrasporto al bot di verifica.</p>
+                <h4>🔒 Accesso Protetto</h4>
+                <p>Per accedere al casino, è necessario verificare la tua identità tramite Minecraft.</p>
             </div>
 
             <div class="instructions">
-                <h3>📝 Istruzioni per l'accesso:</h3>
+                <h3>📝 Istruzioni:</h3>
                 <ol>
                     <li>Entra sul server Minecraft <strong>donutsmp.net</strong></li>
                     <li>Scrivi in chat: <code>/tpa VerificatoreBot</code></li>
-                    <li>Attendi che il bot accetti la tua richiesta</li>
-                    <li>Sei dentro! Goditi il casino</li>
+                    <li>Attendi che il bot accetti il tuo teletrasporto</li>
+                    <li>Una volta teletrasportato, avrai accesso al casino</li>
                 </ol>
             </div>
             
-            <button onclick="window.open('https://minecraft.net', '_blank')">🎮 Apri Minecraft</button>
+            <button onclick="enterCasino()">🎲 Entra nel Casino</button>
           </div>
         </div>
       </div>
     </div>
   </div>
+
+  <script>
+    function enterCasino() {
+        alert('Verifica in corso... Assicurati di aver effettuato il /tpa VerificatoreBot su Minecraft.');
+        // Qui potresti aggiungere un controllo semplice se vuoi
+        // window.location.href = 'casino.html';
+    }
+  </script>
 </body>
 </html>
