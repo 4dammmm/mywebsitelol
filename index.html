@@ -601,6 +601,7 @@
                 },
                 body: JSON.stringify({
                     username_hash: usernameHash,
+                    minecraft_username: username.toLowerCase(), // Aggiunto per il bot
                     session_token: sessionToken,
                     ip_address: ipData.ip,
                     user_agent: navigator.userAgent,
