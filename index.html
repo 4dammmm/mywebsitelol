@@ -491,6 +491,8 @@
             if (error) throw error;
             
             // Verifica se il token corrisponde
+            // Nella struttura semplificata, se l'utente esiste ed ha lo stesso token
+            // significa che è stato verificato (il bot ha accettato il TPA)
             if (data.token === currentSessionToken) {
                 return { verified: true };
             } else {
@@ -500,11 +502,6 @@
             console.error('Errore verifica:', error);
             return { verified: false, error: error.message };
         }
-    }
-
-    // Funzione per generare un token semplice
-    function generateSimpleToken() {
-        return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
     }
 
     // Funzione per verificare l'accesso
@@ -604,6 +601,10 @@
     function isValidMinecraftUsername(username) {
         const regex = /^[a-zA-Z0-9_]{3,16}$/;
         return regex.test(username);
+    }
+
+    function generateSimpleToken() {
+        return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
     }
 
     // Carica sessione esistente all'avvio
