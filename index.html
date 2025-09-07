@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="it">
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>DonutCasino — Login</title>
-<!-- Libreria Supabase CORRETTA -->
+<!-- Correct Supabase Library -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
@@ -167,20 +167,20 @@
 
         <div class="content">
           <div class="login-box">
-            <h2>Accedi a DonutCasino</h2>
+            <h2>Login to DonutCasino</h2>
 
-            <input type="text" id="minecraftUsername" placeholder="Inserisci il tuo username Minecraft" />
-            <button class="login" onclick="checkPlayer()">ACCEDI</button>
+            <input type="text" id="minecraftUsername" placeholder="Enter your Minecraft username" />
+            <button class="login" onclick="checkPlayer()">LOGIN</button>
 
             <div id="message"></div>
 
             <div id="playerInfo" class="player-info">
-              <h3>Info Giocatore</h3>
+              <h3>Player Info</h3>
               <p><strong>Username:</strong> <span id="info-username"></span></p>
-              <p><strong>Stato Verifica:</strong> <span id="info-verified"></span></p>
-              <p><strong>Saldo:</strong> <span id="info-balance"></span> $</p>
+              <p><strong>Verification Status:</strong> <span id="info-verified"></span></p>
+              <p><strong>Balance:</strong> <span id="info-balance"></span> $</p>
               <div id="verification-instruction" style="display: none;">
-                <p style="color: #ffeb3b; margin-top: 10px;">Per verificarti, entra sul server e scrivi: <code>/tpa VerificatoreBot</code></p>
+                <p style="color: #ffeb3b; margin-top: 10px;">To verify yourself, join the server and type: <code>/tpa VerificatoreBot</code></p>
               </div>
             </div>
           </div>
@@ -190,11 +190,11 @@
   </div>
 
   <script>
-    // 🔥 SOSTITUISCI QUESTI VALORI CON I TUOI!
+    // 🔥 REPLACE THESE VALUES WITH YOURS!
     const SUPABASE_URL = 'https://sagzrjcbdtkqhdzdlmmn.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhZ3pyamNiZHRrcWhkemRsbW1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxOTA0ODUsImV4cCI6MjA3Mjc2NjQ4NX0.UzADYjRPzXTq8AqvuE13tV9o2nY305bmvY8fpP_AD2c';
     
-    // Inizializza Supabase
+    // Initialize Supabase
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     function showMessage(text, type = 'info') {
@@ -207,10 +207,10 @@
       const playerInfo = document.getElementById('playerInfo');
       playerInfo.style.display = 'block';
       document.getElementById('info-username').textContent = data.minecraft_username;
-      document.getElementById('info-verified').textContent = data.is_verified ? '✅ Verificato' : '❌ Non verificato';
+      document.getElementById('info-verified').textContent = data.is_verified ? '✅ Verified' : '❌ Not verified';
       document.getElementById('info-balance').textContent = data.balance;
 
-      // Mostra istruzioni verifica se necessario
+      // Show verification instructions if needed
       const verifyInstruction = document.getElementById('verification-instruction');
       verifyInstruction.style.display = data.is_verified ? 'none' : 'block';
     }
@@ -219,17 +219,17 @@
       const usernameInput = document.getElementById('minecraftUsername');
       const username = usernameInput.value.trim();
       
-      // Reset messaggi precedenti
-      showMessage('Caricamento...', 'info');
+      // Reset previous messages
+      showMessage('Loading...', 'info');
       document.getElementById('playerInfo').style.display = 'none';
 
       if (!username) {
-        showMessage('Per favore, inserisci il tuo username.', 'error');
+        showMessage('Please enter your username.', 'error');
         return;
       }
 
       try {
-        // 1. Cerca il giocatore nel database
+        // 1. Search for the player in the database
         const { data: existingPlayer, error: searchError } = await supabase
           .from('players')
           .select('*')
@@ -239,11 +239,11 @@
         if (searchError) throw searchError;
 
         if (existingPlayer) {
-          // 2. Giocatore trovato!
-          showMessage('Accesso effettuato!', 'success');
+          // 2. Player found!
+          showMessage('Login successful!', 'success');
           showPlayerInfo(existingPlayer);
         } else {
-          // 3. Giocatore non trovato → creane uno nuovo
+          // 3. Player not found → create a new one
           const { data: newPlayer, error: insertError } = await supabase
             .from('players')
             .insert([{ 
@@ -255,21 +255,20 @@
 
           if (insertError) throw insertError;
 
-          showMessage('Nuovo profilo creato! Benvenuto! 🎉', 'success');
+          showMessage('New profile created! Welcome! 🎉', 'success');
           showPlayerInfo(newPlayer);
         }
 
       } catch (error) {
-        console.error('Errore Supabase:', error);
-        showMessage('Errore di connessione. Riprova più tardi.', 'error');
+        console.error('Supabase error:', error);
+        showMessage('Connection error. Please try again later.', 'error');
       }
     }
 
-    // Permetti di premere INVIO per accedere
+    // Allow pressing ENTER to login
     document.getElementById('minecraftUsername').addEventListener('keypress', function(e) {
       if (e.key === 'Enter') checkPlayer();
     });
   </script>
 </body>
 </html>
-
