@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DonutCasino - Verifica Sessione</title>
+    <title>DonutCasino - Accesso</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Includiamo crypto-js per funzioni crittografiche -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
         :root {
             --frame-border: #11023F;
@@ -173,14 +171,6 @@
             background: rgba(255,255,255,0.2);
             box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
         }
-        button.warning {
-            background: linear-gradient(90deg, var(--yellow), #ffb300);
-            color: #333;
-        }
-        button.warning:hover {
-            background: linear-gradient(90deg, #ffd54f, #ffc107);
-            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
-        }
         button:disabled {
             background: rgba(255,255,255,0.1);
             color: rgba(255,255,255,0.4);
@@ -214,32 +204,9 @@
             border: 1px solid rgba(30, 136, 229, 0.3);
             display: block !important;
         }
-        .warning { 
-            background: rgba(255, 193, 7, 0.2); 
-            color: var(--yellow); 
-            border: 1px solid rgba(255, 193, 7, 0.3);
-            display: block !important;
-        }
 
         .hidden {
             display: none !important;
-        }
-
-        .instructions {
-            background: rgba(255,255,255,0.05);
-            padding: 15px;
-            border-radius: 10px;
-            margin: 15px 0;
-            text-align: left;
-        }
-        code {
-            background: rgba(0,0,0,0.3);
-            padding: 8px 12px;
-            border-radius: 5px;
-            font-family: monospace;
-            display: inline-block;
-            margin: 5px 0;
-            color: #ffc107;
         }
 
         .loader {
@@ -257,27 +224,6 @@
             to { transform: rotate(360deg); }
         }
 
-        .session-info {
-            background: rgba(255,255,255,0.05);
-            padding: 10px;
-            border-radius: 8px;
-            margin: 10px 0;
-            text-align: left;
-            font-size: 14px;
-        }
-
-        .verification-code {
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--green);
-            letter-spacing: 2px;
-            margin: 15px 0;
-            padding: 10px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 8px;
-            font-family: monospace;
-        }
-
         @media (max-width:768px) {
             .login-box { padding:30px 20px; }
             .login-box h2 { font-size:24px; }
@@ -286,38 +232,13 @@
             }
         }
 
-        .progress-bar {
-            height: 6px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 3px;
-            margin: 15px 0;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--blue), var(--purple));
-            border-radius: 3px;
-            width: 0%;
-            transition: width 0.5s ease;
-        }
-
-        .security-notice {
-            background: rgba(255, 193, 7, 0.1);
-            border: 1px solid rgba(255, 193, 7, 0.3);
+        .welcome-message {
+            background: rgba(0, 200, 83, 0.1);
+            border: 1px solid rgba(0, 200, 83, 0.3);
             border-radius: 8px;
-            padding: 12px;
+            padding: 15px;
             margin: 15px 0;
-            text-align: left;
-            font-size: 14px;
-        }
-        
-        .security-notice h4 {
-            color: var(--yellow);
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            text-align: center;
         }
     </style>
 </head>
@@ -335,9 +256,8 @@
           <div class="login-box">
             <h2>🎰 Accesso DonutCasino</h2>
             
-            <div class="security-notice">
-                <h4>🔒 Sicurezza Rafforzata</h4>
-                <p>Il tuo account è protetto da verifica a due fattori tramite Minecraft. Non condividere mai il codice di verifica con altri.</p>
+            <div class="welcome-message">
+                <p>Inserisci il tuo username Minecraft per accedere al casino</p>
             </div>
 
             <div class="input-group">
@@ -345,35 +265,9 @@
                 <input type="text" id="usernameInput" placeholder="Inserisci il tuo username" autocomplete="off" />
             </div>
             
-            <button onclick="createSession()" id="createSessionBtn">🎯 Genera Codice di Verifica</button>
+            <button onclick="checkPlayer()" id="checkPlayerBtn">🎯 Accedi al Casino</button>
             
             <div id="status" class="hidden"></div>
-            
-            <div id="verificationSteps" class="hidden">
-                <div class="instructions">
-                    <h3>📝 Istruzioni:</h3>
-                    <ol>
-                        <li>Entra sul server Minecraft <strong>donutsmp.net</strong></li>
-                        <li>Scrivi in chat: <code>/tpa VerificatoreBot</code></li>
-                        <li>Attendi la conferma del bot</li>
-                        <li>Torna qui e clicca "Verifica Accesso"</li>
-                    </ol>
-                </div>
-                
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
-                
-                <button onclick="checkVerification()" id="verifyBtn">🔄 Verifica Accesso</button>
-                <button onclick="clearSession()" class="secondary">🗑️ Cancella Sessione</button>
-            </div>
-            
-            <div id="verifiedStatus" class="hidden">
-                <h3>✅ Accesso Consentito!</h3>
-                <p>La tua sessione è stata verificata con successo</p>
-                <button onclick="enterCasino()">🎲 Entra nel Casino</button>
-                <button onclick="clearSession()" class="secondary">🗑️ Cancella Sessione</button>
-            </div>
           </div>
         </div>
       </div>
@@ -381,102 +275,10 @@
   </div>
 
   <script>
-    // Configurazione Supabase
+    // Configurazione Supabase - SOSTITUISCI CON LE TUE CREDENZIALI
     const SUPABASE_URL = 'https://sagzrjcbdtkqhdzdlmmn.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhZ3pyamNiZHRrcWhkemRsbW1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxOTA0ODUsImV4cCI6MjA3Mjc2NjQ4NX0.UzADYjRPzXTq8AqvuE13tV9o2nY305bmvY8fpP_AD2c';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    // Chiave per crittografia lato client (in un caso reale, questa dovrebbe essere gestita in modo più sicuro)
-    const CLIENT_CRYPTO_KEY = "client_secret_key_change_in_production";
-    
-    let currentSessionToken = null;
-    let currentUsername = null;
-    let verificationInterval = null;
-    let progressInterval = null;
-    let lastSessionCreationTime = 0;
-    const SESSION_COOLDOWN = 10000; // 10 secondi di cooldown
-    let requestCount = 0;
-    const MAX_REQUESTS = 5;
-    const REQUEST_WINDOW = 60000; // 1 minuto
-
-    // Funzione per crittografare dati nel localStorage
-    function encryptData(data) {
-        return CryptoJS.AES.encrypt(JSON.stringify(data), CLIENT_CRYPTO_KEY).toString();
-    }
-
-    // Funzione per decrittografare dati dal localStorage
-    function decryptData(encryptedData) {
-        try {
-            const bytes = CryptoJS.AES.decrypt(encryptedData, CLIENT_CRYPTO_KEY);
-            return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-        } catch (e) {
-            console.error("Errore nella decrittografia dei dati:", e);
-            return null;
-        }
-    }
-
-    // Carica dati sicuri dal localStorage
-    function loadSecureData() {
-        try {
-            const encryptedSession = localStorage.getItem('secure_casino_session');
-            if (encryptedSession) {
-                const sessionData = decryptData(encryptedSession);
-                if (sessionData && sessionData.token && sessionData.username) {
-                    // Verifica che la sessione non sia scaduta
-                    if (sessionData.expires && new Date(sessionData.expires) > new Date()) {
-                        currentSessionToken = sessionData.token;
-                        currentUsername = sessionData.username;
-                        return true;
-                    } else {
-                        // Sessione scaduta, pulisci
-                        localStorage.removeItem('secure_casino_session');
-                    }
-                }
-            }
-        } catch (e) {
-            console.error("Errore nel caricamento dati sicuri:", e);
-        }
-        return false;
-    }
-
-    // Salva dati sicuri nel localStorage
-    function saveSecureSession(token, username, expires) {
-        const sessionData = {
-            token: token,
-            username: username,
-            expires: expires,
-            created: new Date().toISOString()
-        };
-        localStorage.setItem('secure_casino_session', encryptData(sessionData));
-    }
-
-    // Controlla sessione esistente all'avvio
-    window.addEventListener('DOMContentLoaded', function() {
-        if (loadSecureData()) {
-            checkExistingSession();
-        }
-    });
-
-    // Rate limiting per prevenire abusi
-    function checkRateLimit() {
-        const now = Date.now();
-        requestCount++;
-        
-        // Resetta il contatore se è passato il tempo della finestra
-        if (now - lastSessionCreationTime > REQUEST_WINDOW) {
-            requestCount = 1;
-            lastSessionCreationTime = now;
-            return true;
-        }
-        
-        // Blocca se troppe richieste
-        if (requestCount > MAX_REQUESTS) {
-            showStatus('⏳ Troppe richieste. Attendere un minuto.', 'warning');
-            return false;
-        }
-        
-        return true;
-    }
 
     function setLoading(buttonId, isLoading) {
         const btn = document.getElementById(buttonId);
@@ -488,306 +290,8 @@
         } else {
             btn.querySelector('.loader')?.remove();
             btn.disabled = false;
-            
-            // Ripristina il contenuto originale del pulsante
-            if (buttonId === 'createSessionBtn') {
-                btn.innerHTML = '🎯 Genera Codice di Verifica';
-            } else if (buttonId === 'verifyBtn') {
-                btn.innerHTML = '🔄 Verifica Accesso';
-            }
+            btn.innerHTML = '🎯 Accedi al Casino';
         }
-    }
-
-    function updateProgressBar(percentage) {
-        const progressFill = document.getElementById('progressFill');
-        if (progressFill) {
-            progressFill.style.width = percentage + '%';
-        }
-    }
-
-    async function checkExistingActiveSession(username) {
-        try {
-            // Hash dell'username per prevenire enumerazione
-            const usernameHash = CryptoJS.SHA256(username.toLowerCase()).toString();
-            
-            const { data: activeSessions, error } = await supabase
-                .from('player_sessions')
-                .select('id, created_at, expires_at, is_verified')
-                .eq('username_hash', usernameHash)
-                .gt('expires_at', new Date().toISOString())
-                .order('created_at', { ascending: false })
-                .limit(1);
-
-            if (error) {
-                console.error('Errore nel controllo sessioni attive:', error);
-                return null;
-            }
-
-            if (activeSessions && activeSessions.length > 0) {
-                return activeSessions[0];
-            }
-            
-            return null;
-        } catch (error) {
-            console.error('Errore nel controllo sessioni attive:', error);
-            return null;
-        }
-    }
-
-    async function createSession() {
-        // Controllo rate limiting
-        if (!checkRateLimit()) return;
-        
-        const username = document.getElementById('usernameInput').value.trim();
-        if (!username) {
-            showStatus('❌ Inserisci un username valido', 'error');
-            return;
-        }
-
-        // Validazione username Minecraft
-        if (!isValidMinecraftUsername(username)) {
-            showStatus('❌ Username Minecraft non valido (3-16 caratteri, lettere, numeri e underscore)', 'error');
-            return;
-        }
-
-        // Controllo cooldown
-        const now = Date.now();
-        if (now - lastSessionCreationTime < SESSION_COOLDOWN) {
-            const remaining = Math.ceil((SESSION_COOLDOWN - (now - lastSessionCreationTime)) / 1000);
-            showStatus(`⏳ Attendere ${remaining} secondi prima di creare una nuova sessione`, 'warning');
-            return;
-        }
-
-        // Controlla se esiste già una sessione attiva per questo utente
-        const existingSession = await checkExistingActiveSession(username);
-        if (existingSession) {
-            if (existingSession.is_verified) {
-                showStatus('✅ Hai già una sessione verificata attiva', 'success');
-                loadSecureData();
-                showVerifiedUI();
-                return;
-            } else {
-                showStatus('🔄 Hai già una sessione attiva in attesa di verifica', 'info');
-                loadSecureData();
-                document.getElementById('verificationSteps').classList.remove('hidden');
-                startVerificationCheck();
-                return;
-            }
-        }
-
-        showStatus('⏳ Creazione sessione in corso...', 'info');
-        setLoading('createSessionBtn', true);
-        lastSessionCreationTime = now;
-
-        try {
-            // Ottieni IP dell'utente
-            const ipResponse = await fetch('https://api.ipify.org?format=json');
-            const ipData = await ipResponse.json();
-            
-            const sessionToken = generateSecureSessionToken();
-            const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-            
-            // Hash dell'username per proteggere l'identità nel database
-            const usernameHash = CryptoJS.SHA256(username.toLowerCase()).toString();
-
-            // Usiamo il metodo fetch diretto per evitare problemi con .single()
-            const response = await fetch(SUPABASE_URL + '/rest/v1/player_sessions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-                    'apikey': SUPABASE_ANON_KEY,
-                    'Prefer': 'return=representation'
-                },
-                body: JSON.stringify({
-                    username_hash: usernameHash,
-                    minecraft_username: username.toLowerCase(), // Aggiunto per il bot
-                    session_token: sessionToken,
-                    ip_address: ipData.ip,
-                    user_agent: navigator.userAgent,
-                    expires_at: expiresAt.toISOString(),
-                    is_verified: false,
-                    created_at: new Date().toISOString()
-                })
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Errore nella creazione della sessione');
-            }
-
-            // Salva in modo sicuro nel localStorage
-            saveSecureSession(sessionToken, username, expiresAt.toISOString());
-            currentSessionToken = sessionToken;
-            currentUsername = username;
-
-            showStatus(
-                `✅ Sessione creata!<br><br>
-                👉 Vai su Minecraft e scrivi:<br>
-                <code>/tpa VerificatoreBot</code><br><br>
-                ⏳ Attendi la verifica...`,
-                'success'
-            );
-
-            document.getElementById('verificationSteps').classList.remove('hidden');
-            startVerificationCheck();
-
-        } catch (error) {
-            console.error('Errore completo:', error);
-            showStatus('❌ Errore: ' + error.message, 'error');
-        } finally {
-            setLoading('createSessionBtn', false);
-        }
-    }
-
-    async function checkVerificationStatus() {
-        if (!currentSessionToken) {
-            console.log('❌ Nessun token di sessione trovato');
-            return { verified: false, error: 'No session token' };
-        }
-
-        try {
-            console.log('🔍 Controllo sessione:', currentSessionToken);
-            
-            // Usiamo fetch diretto invece di .single() per evitare l'errore
-            const response = await fetch(
-                `${SUPABASE_URL}/rest/v1/player_sessions?session_token=eq.${currentSessionToken}&select=is_verified,expires_at,verified_at,created_at,username_hash`,
-                {
-                    headers: {
-                        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-                        'apikey': SUPABASE_ANON_KEY
-                    }
-                }
-            );
-
-            if (!response.ok) {
-                throw new Error('Errore nella richiesta: ' + response.status);
-            }
-
-            const sessions = await response.json();
-            
-            if (!sessions || sessions.length === 0) {
-                console.log('❌ Sessione non trovata nel database');
-                return { verified: false, error: 'Session not found' };
-            }
-
-            const session = sessions[0];
-            console.log('📊 Dati sessione:', session);
-
-            // Controlla se la sessione è scaduta
-            const isExpired = new Date(session.expires_at) < new Date();
-            if (isExpired) {
-                console.log('❌ Sessione scaduta');
-                return { verified: false, error: 'Session expired' };
-            }
-
-            // Controlla se è verificata
-            if (session.is_verified) {
-                console.log('✅ Sessione verificata!');
-                return { verified: true, session: session };
-            } else {
-                console.log('❌ Sessione non ancora verificata');
-                return { verified: false, error: 'Not verified yet' };
-            }
-
-        } catch (error) {
-            console.error('❌ Errore durante il check:', error);
-            return { verified: false, error: error.message };
-        }
-    }
-
-    async function checkVerification() {
-        if (!checkRateLimit()) return;
-        
-        showStatus('🔍 Controllo verifica in corso...', 'info');
-        setLoading('verifyBtn', true);
-        
-        const result = await checkVerificationStatus();
-        if (result.verified) {
-            showVerifiedUI();
-        } else {
-            showStatus(`❌ Sessione non verificata. ${result.error || 'Hai fatto /tpa VerificatoreBot?'}`, 'error');
-        }
-        setLoading('verifyBtn', false);
-    }
-
-    function startVerificationCheck() {
-        if (verificationInterval) clearInterval(verificationInterval);
-        if (progressInterval) clearInterval(progressInterval);
-        
-        let progress = 0;
-        updateProgressBar(progress);
-        
-        // Animazione della barra di progresso
-        progressInterval = setInterval(() => {
-            progress = (progress + 1) % 100;
-            updateProgressBar(progress);
-        }, 100);
-        
-        verificationInterval = setInterval(async () => {
-            const result = await checkVerificationStatus();
-            if (result.verified) {
-                clearInterval(verificationInterval);
-                clearInterval(progressInterval);
-                updateProgressBar(100);
-                showVerifiedUI();
-            }
-        }, 3000);
-    }
-
-    function showVerifiedUI() {
-        document.getElementById('verifiedStatus').classList.remove('hidden');
-        document.getElementById('verificationSteps').classList.add('hidden');
-        document.getElementById('status').classList.add('hidden');
-    }
-
-    async function checkExistingSession() {
-        if (!currentSessionToken || !currentUsername) return;
-
-        // Mostra lo stato di caricamento
-        showStatus('🔍 Controllo sessione esistente...', 'info');
-        
-        const result = await checkVerificationStatus();
-        if (result.verified) {
-            document.getElementById('verifiedStatus').classList.remove('hidden');
-            document.getElementById('usernameInput').value = currentUsername;
-            document.getElementById('status').classList.add('hidden');
-        } else if (result.error === 'Session not found') {
-            // Sessione non trovata, pulisci il localStorage
-            clearSession();
-            showStatus('⚠️ Sessione precedente non valida. Creane una nuova.', 'warning');
-        } else {
-            document.getElementById('verificationSteps').classList.remove('hidden');
-            document.getElementById('usernameInput').value = currentUsername;
-            startVerificationCheck();
-            showStatus('🔄 Sessione trovata ma non ancora verificata', 'info');
-        }
-    }
-
-    function clearSession() {
-        localStorage.removeItem('secure_casino_session');
-        currentSessionToken = null;
-        currentUsername = null;
-        requestCount = 0;
-        
-        document.getElementById('verifiedStatus').classList.add('hidden');
-        document.getElementById('verificationSteps').classList.add('hidden');
-        document.getElementById('status').classList.add('hidden');
-        document.getElementById('usernameInput').value = '';
-        
-        showStatus('🗑️ Sessione cancellata. Puoi crearne una nuova.', 'info');
-    }
-
-    function enterCasino() {
-        alert('🎉 Accesso consentito! Redirect al casino...');
-        // window.location.href = 'casino.html';
-    }
-
-    function generateSecureSessionToken() {
-        // Genera un token più sicuro usando crypto-js
-        const randomPart = CryptoJS.lib.WordArray.random(16).toString();
-        const timePart = Date.now().toString(36);
-        return 'sess_' + randomPart + '_' + timePart;
     }
 
     function showStatus(message, type) {
@@ -798,14 +302,81 @@
     }
 
     function isValidMinecraftUsername(username) {
-        // Regex per validare gli username Minecraft (3-16 caratteri, lettere, numeri e underscore)
         const regex = /^[a-zA-Z0-9_]{3,16}$/;
         return regex.test(username);
     }
 
+    function enterCasino() {
+        showStatus('🎉 Accesso consentito! Reindirizzamento...', 'success');
+        setTimeout(() => {
+            // window.location.href = 'casino.html';
+            alert('Reindirizzamento al casino...');
+        }, 2000);
+    }
+
+    async function checkPlayer() {
+        const username = document.getElementById('usernameInput').value.trim().toLowerCase();
+        
+        if (!username) {
+            showStatus('❌ Inserisci un username valido', 'error');
+            return;
+        }
+
+        if (!isValidMinecraftUsername(username)) {
+            showStatus('❌ Username Minecraft non valido (3-16 caratteri, lettere, numeri e underscore)', 'error');
+            return;
+        }
+
+        showStatus('🔍 Controllo registrazione...', 'info');
+        setLoading('checkPlayerBtn', true);
+
+        try {
+            // Controlla se il player è già registrato
+            const { data: existingPlayer, error: checkError } = await supabase
+                .from('player_sessions')
+                .select('id, created_at')
+                .eq('minecraft_username', username)
+                .single();
+
+            if (checkError && checkError.code !== 'PGRST116') {
+                throw new Error('Errore nel controllo registrazione: ' + checkError.message);
+            }
+
+            if (existingPlayer) {
+                // Player già registrato - accesso diretto
+                showStatus('✅ Ben tornato! Accesso consentito.', 'success');
+                enterCasino();
+            } else {
+                // Nuovo player - registrazione
+                const { error: insertError } = await supabase
+                    .from('player_sessions')
+                    .insert([{ minecraft_username: username }]);
+
+                if (insertError) {
+                    if (insertError.code === '23505') {
+                        // Username già esistente (race condition)
+                        showStatus('✅ Accesso consentito!', 'success');
+                        enterCasino();
+                    } else {
+                        throw new Error('Errore nella registrazione: ' + insertError.message);
+                    }
+                } else {
+                    showStatus('🎉 Registrazione completata! Benvenuto!', 'success');
+                    enterCasino();
+                }
+            }
+
+        } catch (error) {
+            console.error('Errore:', error);
+            showStatus('❌ Errore: ' + error.message, 'error');
+        } finally {
+            setLoading('checkPlayerBtn', false);
+        }
+    }
+
     // Permetti di premere INVIO
     document.getElementById('usernameInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') createSession();
+        if (e.key === 'Enter') checkPlayer();
     });
   </script>
 </body>
