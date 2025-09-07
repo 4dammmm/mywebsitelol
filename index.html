@@ -412,19 +412,14 @@
                 .from('players')
                 .select('username, token, created_at')
                 .eq('username', username.toLowerCase())
-                .single();
+                .maybeSingle();  // Usa maybeSingle invece di single
 
             if (error) {
-                if (error.code === 'PGRST116') {
-                    // Utente non trovato - mostra istruzioni per la verifica
-                    currentUsername = username;
-                    showStatus('❌ Account non trovato. Devi verificarti su Minecraft.', 'warning');
-                    document.getElementById('verificationSteps').classList.remove('hidden');
-                    startVerificationCheck();
-                } else {
-                    throw new Error('Errore nel controllo utente: ' + error.message);
-                }
-            } else {
+                console.error('Errore database:', error);
+                throw new Error('Errore di connessione al database');
+            }
+
+            if (user) {
                 // Utente trovato - accesso consentito
                 currentUsername = user.username;
                 
@@ -436,6 +431,12 @@
 
                 showStatus('✅ Account verificato! Accesso consentito.', 'success');
                 showVerifiedUI();
+            } else {
+                // Utente non trovato - mostra istruzioni per la verifica
+                currentUsername = username;
+                showStatus('❌ Account non trovato. Devi verificarti su Minecraft.', 'warning');
+                document.getElementById('verificationSteps').classList.remove('hidden');
+                startVerificationCheck();
             }
 
         } catch (error) {
@@ -462,15 +463,14 @@
                 .from('players')
                 .select('username, token, created_at')
                 .eq('username', currentUsername.toLowerCase())
-                .single();
+                .maybeSingle();  // Usa maybeSingle invece di single
 
             if (error) {
-                if (error.code === 'PGRST116') {
-                    showStatus('❌ Utente non ancora verificato. Hai fatto /tpa VerificatoreBot?', 'error');
-                } else {
-                    throw new Error('Errore verifica: ' + error.message);
-                }
-            } else {
+                console.error('Errore database:', error);
+                throw new Error('Errore di connessione al database');
+            }
+
+            if (user) {
                 // Utente verificato con successo
                 showStatus('✅ Verifica completata!', 'success');
                 
@@ -481,6 +481,8 @@
                 }));
 
                 showVerifiedUI();
+            } else {
+                showStatus('❌ Utente non ancora verificato. Hai fatto /tpa VerificatoreBot?', 'error');
             }
 
         } catch (error) {
