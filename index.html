@@ -366,6 +366,15 @@
                 <button onclick="checkVerification()" id="checkBtn">🔄 Controlla Verifica</button>
                 <button onclick="resetVerification()" class="secondary">🔄 Ricomincia</button>
             </div>
+
+            <div id="accessSection" class="hidden">
+                <div class="success">
+                    <h3>✅ Verifica Completata!</h3>
+                    <p>Ora puoi accedere al casino</p>
+                </div>
+                <button onclick="enterCasino()">🎲 Entra nel Casino</button>
+                <button onclick="resetAll()" class="secondary">🔁 Nuova Verifica</button>
+            </div>
           </div>
         </div>
       </div>
@@ -379,8 +388,7 @@
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     
     let currentUsername = null;
-    let verificationInterval = null;
-    let progressInterval = null;
+    let isVerified = false;
 
     // Funzione per iniziare la verifica
     async function startVerification() {
@@ -400,7 +408,8 @@
         setLoading('verifyBtn', true);
 
         try {
-            currentUsername = username;
+            currentUsername = username.toLowerCase();
+            isVerified = false;
             
             showStatus(
                 `✅ Verifica iniziata!<br><br>
@@ -411,7 +420,7 @@
             );
 
             document.getElementById('verificationSteps').classList.remove('hidden');
-            startVerificationCheck();
+            document.getElementById('accessSection').classList.add('hidden');
 
         } catch (error) {
             console.error('Errore:', error);
@@ -436,7 +445,7 @@
             const { data: user, error } = await supabase
                 .from('players')
                 .select('username')
-                .eq('username', currentUsername.toLowerCase())
+                .eq('username', currentUsername)
                 .maybeSingle();
 
             if (error) {
@@ -445,13 +454,12 @@
             }
 
             if (user) {
-                // Accesso consentito - ma non memorizzare nulla
-                showStatus('✅ Verifica completata! Accesso consentito.', 'success');
+                // Verifica completata
+                isVerified = true;
+                showStatus('✅ Verifica completata! Clicca "Entra nel Casino" per accedere.', 'success');
                 
-                // Reindirizza immediatamente senza memorizzare
-                setTimeout(() => {
-                    enterCasino();
-                }, 2000);
+                document.getElementById('accessSection').classList.remove('hidden');
+                document.getElementById('verificationSteps').classList.add('hidden');
                 
             } else {
                 showStatus('❌ Utente non ancora verificato. Hai fatto /tpa VerificatoreBot?', 'error');
@@ -465,42 +473,33 @@
         }
     }
 
-    function startVerificationCheck() {
-        if (verificationInterval) clearInterval(verificationInterval);
-        if (progressInterval) clearInterval(progressInterval);
+    function enterCasino() {
+        if (!isVerified) {
+            showStatus('❌ Devi prima completare la verifica', 'error');
+            return;
+        }
+
+        alert('🎉 Accesso consentito! Redirect al casino...');
+        resetAll();
         
-        let progress = 0;
-        updateProgressBar(progress);
-        
-        progressInterval = setInterval(() => {
-            progress = (progress + 1) % 100;
-            updateProgressBar(progress);
-        }, 100);
-        
-        verificationInterval = setInterval(async () => {
-            await checkVerification();
-        }, 3000);
+        // window.location.href = 'casino.html';
     }
 
     function resetVerification() {
-        currentUsername = null;
-        
         document.getElementById('verificationSteps').classList.add('hidden');
         document.getElementById('status').classList.add('hidden');
-        document.getElementById('usernameInput').value = '';
         
-        showStatus('🔄 Verifica annullata. Inserisci un nuovo username.', 'info');
+        showStatus('🔄 Verifica annullata. Puoi ricominciare.', 'info');
     }
 
-    function enterCasino() {
-        alert('🎉 Accesso consentito! Redirect al casino...');
-        // Resetta tutto dopo l'accesso
+    function resetAll() {
         currentUsername = null;
+        isVerified = false;
+        
         document.getElementById('verificationSteps').classList.add('hidden');
+        document.getElementById('accessSection').classList.add('hidden');
         document.getElementById('status').classList.add('hidden');
         document.getElementById('usernameInput').value = '';
-        
-        // window.location.href = 'casino.html';
     }
 
     function setLoading(buttonId, isLoading) {
@@ -513,13 +512,6 @@
         } else {
             btn.querySelector('.loader')?.remove();
             btn.disabled = false;
-        }
-    }
-
-    function updateProgressBar(percentage) {
-        const progressFill = document.getElementById('progressFill');
-        if (progressFill) {
-            progressFill.style.width = percentage + '%';
         }
     }
 
