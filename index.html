@@ -1,184 +1,159 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DonutCasino - Accesso</title>
-    <style>
-        /* Mantieni gli stili CSS esistenti */
-        :root {
-            --frame-border: #11023F;
-            --blue: #0052a5;
-            --green: #00c853;
-            --red: #ff5252;
-            --yellow: #ffc107;
-            --purple: #7b1fa2;
-        }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>DonutCasino — Login</title>
+<!-- Aggiungi la libreria Supabase -->
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --frame-border: #11023F;
+    --blue: #0052a5;
+  }
 
-        *{box-sizing:border-box;margin:0;padding:0;font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family: Arial, Helvetica, sans-serif}
 
-        html, body {
-            width:100%;
-            height:100%;
-            overflow:hidden;
-        }
+  html, body {
+    width:100%;
+    height:100%;
+    overflow:hidden;
+  }
 
-        body {
-            background: #0b0b0b;
-            display:flex;
-            flex-direction:column;
-            background-image: radial-gradient(circle at center, #2a0c4e 0%, #0b0b0b 70%);
-        }
+  body {
+    background: #0b0b0b;
+    display:flex;
+    flex-direction:column;
+  }
 
-        .center {
-            flex:1;
-            display:flex;
-            flex-direction:column;
-            border-radius:12px;
-            overflow:hidden;
-            background: var(--frame-border);
-            margin: 10px;
-            box-shadow: 0 0 20px rgba(123, 31, 162, 0.4);
-        }
+  .center {
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    border-radius:12px;
+    overflow:hidden;
+    background: var(--frame-border);
+  }
 
-        header {
-            height:70px;
-            background: linear-gradient(90deg, var(--blue), var(--purple));
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            border-top-left-radius:12px;
-            border-top-right-radius:12px;
-        }
-        header img{ height:40px; }
+  header {
+    height:70px;
+    background: var(--blue);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-top-left-radius:12px;
+    border-top-right-radius:12px;
+  }
+  header img{ height:40px; }
 
-        .frame {
-            flex:1;
-            border-radius:0 0 12px 12px;
-            padding:12px;
-            overflow:hidden;
-            display:flex;
-        }
+  .frame {
+    flex:1;
+    border-radius:0 0 12px 12px;
+    padding:12px;
+    overflow:hidden;
+    display:flex;
+  }
 
-        .bg {
-            position:relative;
-            flex:1;
-            border-radius:12px;
-            overflow:hidden;
-        }
+  .bg {
+    position:relative;
+    flex:1;
+    border-radius:12px;
+    overflow:hidden;
+  }
 
-        .bg img.bg-img {
-            position:absolute;
-            inset:0;
-            width:100%;
-            height:100%;
-            object-fit:cover;
-            display:block;
-            z-index:0;
-            border-radius:12px;
-            opacity: 0.7;
-        }
+  .bg img.bg-img {
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+    z-index:0;
+    border-radius:12px;
+  }
 
-        .content {
-            position:relative;
-            z-index:2;
-            width:100%;
-            height:100%;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            padding:20px;
-        }
+  .content {
+    position:relative;
+    z-index:2;
+    width:100%;
+    height:100%;
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    padding-top:8vh;
+  }
 
-        .login-box {
-            width: 95%;
-            max-width: 500px;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(10px);
-            padding: 40px;
-            border-radius: 16px;
-            color: #fff;
-            text-align:center;
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
+  .login-box {
+    width: 95%;
+    max-width: 640px;
+    background: rgba(0,0,0,0.2);
+    backdrop-filter: blur(6px);
+    padding: 60px 70px;
+    border-radius: 16px;
+    color: #fff;
+    text-align:center;
+  }
 
-        .login-box h2 {
-            font-size: 28px;
-            font-weight: 800;
-            color: #d9d9d9;
-            margin-bottom: 20px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-        }
+  .login-box h2 {
+    font-size: 34px;
+    font-weight: 800;
+    color: #d9d9d9;
+    margin-bottom: 32px;
+  }
 
-        .instructions {
-            background: rgba(255,255,255,0.05);
-            padding: 15px;
-            border-radius: 10px;
-            margin: 15px 0;
-            text-align: left;
-        }
-        code {
-            background: rgba(0,0,0,0.3);
-            padding: 8px 12px;
-            border-radius: 5px;
-            font-family: monospace;
-            display: inline-block;
-            margin: 5px 0;
-            color: #ffc107;
-        }
+  input[type="text"] {
+    width:100%;
+    padding:16px;
+    border-radius:10px;
+    border:1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.05);
+    color:#fff;
+    font-size:18px;
+    margin-bottom:24px;
+  }
+  input::placeholder { color: rgba(255,255,255,0.6) }
 
-        button {
-            width:100%;
-            padding:15px;
-            border-radius:10px;
-            border:none;
-            background: linear-gradient(90deg, var(--green), #00b248);
-            color:#fff;
-            font-weight:700;
-            font-size:16px;
-            cursor:pointer;
-            margin:5px 0;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        button:hover { 
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 200, 83, 0.4);
-        }
-        button:active {
-            transform: translateY(0);
-        }
+  button.login {
+    width:100%;
+    padding:16px;
+    border-radius:10px;
+    border:none;
+    background:#00c853;
+    color:#fff;
+    font-weight:700;
+    font-size:18px;
+    cursor:pointer;
+  }
+  button.login:hover { background:#00e676; }
 
-        .security-notice {
-            background: rgba(255, 193, 7, 0.1);
-            border: 1px solid rgba(255, 193, 7, 0.3);
-            border-radius: 8px;
-            padding: 12px;
-            margin: 15px 0;
-            text-align: left;
-            font-size: 14px;
-        }
-        
-        .security-notice h4 {
-            color: var(--yellow);
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+  #message {
+    margin-top: 20px;
+    padding: 10px;
+    border-radius: 8px;
+    display: none;
+  }
+  .success { background: rgba(0, 200, 83, 0.2); color: #00e676; display: block !important; }
+  .error { background: rgba(255, 0, 0, 0.2); color: #ff5252; display: block !important; }
+  .info { background: rgba(30, 136, 229, 0.2); color: #64b5f6; display: block !important; }
 
-        @media (max-width:768px) {
-            .login-box { padding:30px 20px; }
-            .login-box h2 { font-size:24px; }
-            .center {
-                margin: 5px;
-            }
-        }
-    </style>
+  .player-info {
+    margin-top: 20px;
+    text-align: left;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: 10px;
+    display: none;
+  }
+  .player-info h3 {
+    margin-bottom: 10px;
+    color: #00e676;
+  }
+
+  @media (max-width:768px) {
+    .login-box { padding:40px 25px; }
+    .login-box h2 { font-size:24px; }
+  }
+</style>
 </head>
 <body>
   <div class="center">
@@ -192,24 +167,22 @@
 
         <div class="content">
           <div class="login-box">
-            <h2>🎰 Accesso DonutCasino</h2>
-            
-            <div class="security-notice">
-                <h4>🔒 Accesso Protetto</h4>
-                <p>Per accedere al casino, è necessario verificare la tua identità tramite Minecraft.</p>
-            </div>
+            <h2>Accedi a DonutCasino</h2>
 
-            <div class="instructions">
-                <h3>📝 Istruzioni:</h3>
-                <ol>
-                    <li>Entra sul server Minecraft <strong>donutsmp.net</strong></li>
-                    <li>Scrivi in chat: <code>/tpa VerificatoreBot</code></li>
-                    <li>Attendi che il bot accetti il tuo teletrasporto</li>
-                    <li>Una volta teletrasportato, avrai accesso al casino</li>
-                </ol>
+            <input type="text" id="minecraftUsername" placeholder="Inserisci il tuo username Minecraft" />
+            <button class="login" onclick="checkPlayer()">ACCEDI</button>
+
+            <div id="message"></div>
+
+            <div id="playerInfo" class="player-info">
+              <h3>Info Giocatore</h3>
+              <p><strong>Username:</strong> <span id="info-username"></span></p>
+              <p><strong>Stato Verifica:</strong> <span id="info-verified"></span></p>
+              <p><strong>Saldo:</strong> <span id="info-balance"></span> gettoni</p>
+              <div id="verification-instruction" style="display: none;">
+                <p style="color: #ffeb3b; margin-top: 10px;">Per verificarti, entra sul server e scrivi: <code>/tpa VerificatoreBot</code></p>
+              </div>
             </div>
-            
-            <button onclick="enterCasino()">🎲 Entra nel Casino</button>
           </div>
         </div>
       </div>
@@ -217,11 +190,78 @@
   </div>
 
   <script>
-    function enterCasino() {
-        alert('Verifica in corso... Assicurati di aver effettuato il /tpa VerificatoreBot su Minecraft.');
-        // Qui potresti aggiungere un controllo semplice se vuoi
-        // window.location.href = 'casino.html';
+    // Configura Supabase. SOSTITUISCI con i tuoi valori!
+    const SUPABASE_URL = 'https://sagzrjcbdtkqhdzdlmmn.supabase.co'; // La tua URL Supabase
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhZ3pyamNiZHRrcWhkemRsbW1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxOTA0ODUsImV4cCI6MjA3Mjc2NjQ4NX0.UzADYjRPzXTq8AqvuE13tV9o2nY305bmvY8fpP_AD2c'; // La tua Anon Key
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    function showMessage(text, type = 'info') {
+      const messageEl = document.getElementById('message');
+      messageEl.textContent = text;
+      messageEl.className = type; // 'success', 'error', 'info'
     }
+
+    function showPlayerInfo(data) {
+      document.getElementById('playerInfo').style.display = 'block';
+      document.getElementById('info-username').textContent = data.minecraft_username;
+      document.getElementById('info-verified').textContent = data.is_verified ? '✅ Verificato' : '❌ Non verificato';
+      document.getElementById('info-balance').textContent = data.balance;
+
+      // Mostra le istruzioni per la verifica solo se il giocatore non è verificato
+      document.getElementById('verification-instruction').style.display = data.is_verified ? 'none' : 'block';
+    }
+
+    async function checkPlayer() {
+      const username = document.getElementById('minecraftUsername').value.trim().toLowerCase();
+      showMessage('Caricamento...', 'info');
+      document.getElementById('playerInfo').style.display = 'none';
+
+      if (!username) {
+        showMessage('Per favore, inserisci il tuo username.', 'error');
+        return;
+      }
+
+      try {
+        // 1. Cerca il giocatore nel database
+        const { data, error } = await supabase
+          .from('players')
+          .select('*')
+          .eq('minecraft_username', username)
+          .maybeSingle(); // Restituisce un solo risultato o null
+
+        if (error) throw error;
+
+        if (data) {
+          // 2. Giocatore trovato!
+          showMessage('Accesso effettuato!', 'success');
+          showPlayerInfo(data);
+        } else {
+          // 3. Giocatore non trovato, crea un nuovo profilo
+          const { data: newPlayer, error: insertError } = await supabase
+            .from('players')
+            .insert([{ minecraft_username: username, balance: 1000 }])
+            .select()
+            .single();
+
+          if (insertError) throw insertError;
+
+          showMessage('Nuovo profilo creato! Benvenuto!', 'success');
+          showPlayerInfo(newPlayer);
+          // Le istruzioni per la verifica saranno mostrate automaticamente da showPlayerInfo
+        }
+
+      } catch (error) {
+        console.error('Errore:', error);
+        showMessage('Errore di connessione al database.', 'error');
+      }
+    }
+
+    // Permetti di premere "Invio" per accedere
+    document.getElementById('minecraftUsername').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        checkPlayer();
+      }
+    });
   </script>
 </body>
 </html>
