@@ -336,7 +336,7 @@
             
             <div class="security-notice">
                 <h4>🔒 Verifica Minecraft</h4>
-                <p>Devi verificare il tuo account tramite Minecraft prima di accedere.</p>
+                <p>Devi verificare il tuo account tramite Minecraft ogni volta che vuoi accedere.</p>
             </div>
 
             <div class="input-group">
@@ -344,7 +344,7 @@
                 <input type="text" id="usernameInput" placeholder="Inserisci il tuo username" autocomplete="off" />
             </div>
             
-            <button onclick="checkUser()" id="checkBtn">🔍 Controlla Account</button>
+            <button onclick="startVerification()" id="verifyBtn">🎯 Verifica con Minecraft</button>
             
             <div id="status" class="hidden"></div>
             
@@ -363,15 +363,8 @@
                     <div class="progress-fill" id="progressFill"></div>
                 </div>
                 
-                <button onclick="checkVerification()" id="verifyBtn">🔄 Controlla Verifica</button>
-                <button onclick="cancelVerification()" class="secondary">❌ Annulla</button>
-            </div>
-            
-            <div id="verifiedStatus" class="hidden">
-                <h3>✅ Accesso Consentito!</h3>
-                <p>Il tuo account è stato verificato con successo</p>
-                <button onclick="enterCasino()">🎲 Entra nel Casino</button>
-                <button onclick="logout()" class="secondary">🚪 Logout</button>
+                <button onclick="checkVerification()" id="checkBtn">🔄 Controlla Verifica</button>
+                <button onclick="resetVerification()" class="secondary">🔄 Ricomincia</button>
             </div>
           </div>
         </div>
@@ -389,8 +382,8 @@
     let verificationInterval = null;
     let progressInterval = null;
 
-    // Funzione per controllare se l'utente esiste
-    async function checkUser() {
+    // Funzione per iniziare la verifica
+    async function startVerification() {
         const username = document.getElementById('usernameInput').value.trim();
         if (!username) {
             showStatus('❌ Inserisci un username valido', 'error');
@@ -403,47 +396,28 @@
             return;
         }
 
-        showStatus('🔍 Controllo account...', 'info');
-        setLoading('checkBtn', true);
+        showStatus('⏳ Avvio verifica...', 'info');
+        setLoading('verifyBtn', true);
 
         try {
-            // Controlla se l'utente esiste nel database
-            const { data: user, error } = await supabase
-                .from('players')
-                .select('username, token, created_at')
-                .eq('username', username.toLowerCase())
-                .maybeSingle();  // Usa maybeSingle invece di single
+            currentUsername = username;
+            
+            showStatus(
+                `✅ Verifica iniziata!<br><br>
+                👉 Vai su Minecraft e scrivi:<br>
+                <code>/tpa VerificatoreBot</code><br><br>
+                ⏳ Dopo aver fatto il TPA, clicca "Controlla Verifica"`,
+                'success'
+            );
 
-            if (error) {
-                console.error('Errore database:', error);
-                throw new Error('Errore di connessione al database');
-            }
-
-            if (user) {
-                // Utente trovato - accesso consentito
-                currentUsername = user.username;
-                
-                // Salva in localStorage
-                localStorage.setItem('casino_session', JSON.stringify({
-                    token: user.token,
-                    username: user.username
-                }));
-
-                showStatus('✅ Account verificato! Accesso consentito.', 'success');
-                showVerifiedUI();
-            } else {
-                // Utente non trovato - mostra istruzioni per la verifica
-                currentUsername = username;
-                showStatus('❌ Account non trovato. Devi verificarti su Minecraft.', 'warning');
-                document.getElementById('verificationSteps').classList.remove('hidden');
-                startVerificationCheck();
-            }
+            document.getElementById('verificationSteps').classList.remove('hidden');
+            startVerificationCheck();
 
         } catch (error) {
             console.error('Errore:', error);
             showStatus('❌ Errore: ' + error.message, 'error');
         } finally {
-            setLoading('checkBtn', false);
+            setLoading('verifyBtn', false);
         }
     }
 
@@ -455,15 +429,15 @@
         }
 
         showStatus('🔍 Controllo verifica...', 'info');
-        setLoading('verifyBtn', true);
+        setLoading('checkBtn', true);
 
         try {
-            // Controlla se l'utente è stato registrato dal bot
+            // Controlla se l'utente è registrato nel database
             const { data: user, error } = await supabase
                 .from('players')
-                .select('username, token, created_at')
+                .select('username')
                 .eq('username', currentUsername.toLowerCase())
-                .maybeSingle();  // Usa maybeSingle invece di single
+                .maybeSingle();
 
             if (error) {
                 console.error('Errore database:', error);
@@ -471,16 +445,14 @@
             }
 
             if (user) {
-                // Utente verificato con successo
-                showStatus('✅ Verifica completata!', 'success');
+                // Accesso consentito - ma non memorizzare nulla
+                showStatus('✅ Verifica completata! Accesso consentito.', 'success');
                 
-                // Salva in localStorage
-                localStorage.setItem('casino_session', JSON.stringify({
-                    token: user.token,
-                    username: user.username
-                }));
-
-                showVerifiedUI();
+                // Reindirizza immediatamente senza memorizzare
+                setTimeout(() => {
+                    enterCasino();
+                }, 2000);
+                
             } else {
                 showStatus('❌ Utente non ancora verificato. Hai fatto /tpa VerificatoreBot?', 'error');
             }
@@ -489,7 +461,7 @@
             console.error('Errore:', error);
             showStatus('❌ Errore: ' + error.message, 'error');
         } finally {
-            setLoading('verifyBtn', false);
+            setLoading('checkBtn', false);
         }
     }
 
@@ -510,34 +482,25 @@
         }, 3000);
     }
 
-    function cancelVerification() {
+    function resetVerification() {
         currentUsername = null;
         
         document.getElementById('verificationSteps').classList.add('hidden');
         document.getElementById('status').classList.add('hidden');
-        
-        showStatus('❌ Verifica annullata', 'info');
-    }
-
-    function logout() {
-        localStorage.removeItem('casino_session');
-        currentUsername = null;
-        
-        document.getElementById('verifiedStatus').classList.add('hidden');
         document.getElementById('usernameInput').value = '';
         
-        showStatus('🚪 Logout effettuato', 'info');
+        showStatus('🔄 Verifica annullata. Inserisci un nuovo username.', 'info');
     }
 
     function enterCasino() {
         alert('🎉 Accesso consentito! Redirect al casino...');
-        // window.location.href = 'casino.html';
-    }
-
-    function showVerifiedUI() {
-        document.getElementById('verifiedStatus').classList.remove('hidden');
+        // Resetta tutto dopo l'accesso
+        currentUsername = null;
         document.getElementById('verificationSteps').classList.add('hidden');
         document.getElementById('status').classList.add('hidden');
+        document.getElementById('usernameInput').value = '';
+        
+        // window.location.href = 'casino.html';
     }
 
     function setLoading(buttonId, isLoading) {
@@ -572,23 +535,9 @@
         return regex.test(username);
     }
 
-    // Carica sessione esistente all'avvio
-    window.addEventListener('DOMContentLoaded', function() {
-        try {
-            const sessionData = JSON.parse(localStorage.getItem('casino_session'));
-            if (sessionData && sessionData.username) {
-                currentUsername = sessionData.username;
-                document.getElementById('usernameInput').value = currentUsername;
-                showVerifiedUI();
-            }
-        } catch (e) {
-            console.error("Errore nel caricamento sessione:", e);
-        }
-    });
-
     // Permetti di premere INVIO
     document.getElementById('usernameInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') checkUser();
+        if (e.key === 'Enter') startVerification();
     });
   </script>
 </body>
