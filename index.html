@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DonutCasino - Verifica Sessione</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* Tutti gli stili CSS rimangono invariati */
         :root {
             --frame-border: #11023F;
             --blue: #0052a5;
@@ -16,101 +15,92 @@
             --purple: #7b1fa2;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+        *{box-sizing:border-box;margin:0;padding:0;font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;}
 
-        html,
-        body {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
+        html, body {
+            width:100%;
+            height:100%;
+            overflow:hidden;
         }
 
         body {
             background: #0b0b0b;
-            display: flex;
-            flex-direction: column;
+            display:flex;
+            flex-direction:column;
             background-image: radial-gradient(circle at center, #2a0c4e 0%, #0b0b0b 70%);
         }
 
         .center {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            border-radius: 12px;
-            overflow: hidden;
+            flex:1;
+            display:flex;
+            flex-direction:column;
+            border-radius:12px;
+            overflow:hidden;
             background: var(--frame-border);
             margin: 10px;
             box-shadow: 0 0 20px rgba(123, 31, 162, 0.4);
         }
 
         header {
-            height: 70px;
+            height:70px;
             background: linear-gradient(90deg, var(--blue), var(--purple));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-top-left-radius: 12px;
-            border-top-right-radius: 12px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            border-top-left-radius:12px;
+            border-top-right-radius:12px;
         }
-
-        header img {
-            height: 40px;
-        }
+        header img{ height:40px; }
 
         .frame {
-            flex: 1;
-            border-radius: 0 0 12px 12px;
-            padding: 12px;
-            overflow: hidden;
-            display: flex;
+            flex:1;
+            border-radius:0 0 12px 12px;
+            padding:12px;
+            overflow:hidden;
+            display:flex;
         }
 
         .bg {
-            position: relative;
-            flex: 1;
-            border-radius: 12px;
-            overflow: hidden;
+            position:relative;
+            flex:1;
+            border-radius:12px;
+            overflow:hidden;
         }
 
         .bg img.bg-img {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-            z-index: 0;
-            border-radius: 12px;
+            position:absolute;
+            inset:0;
+            width:100%;
+            height:100%;
+            object-fit:cover;
+            display:block;
+            z-index:0;
+            border-radius:12px;
             opacity: 0.7;
         }
 
         .content {
-            position: relative;
-            z-index: 2;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+            position:relative;
+            z-index:2;
+            width:100%;
+            height:100%;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            padding:20px;
         }
 
         .login-box {
             width: 95%;
             max-width: 500px;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0,0,0,0.8);
             backdrop-filter: blur(10px);
             padding: 40px;
             border-radius: 16px;
             color: #fff;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-align:center;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
         .login-box h2 {
@@ -118,7 +108,7 @@
             font-weight: 800;
             color: #d9d9d9;
             margin-bottom: 20px;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
 
         .input-group {
@@ -133,14 +123,14 @@
             color: #b39ddb;
         }
 
-        input[type='text'] {
-            width: 100%;
-            padding: 15px;
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            font-size: 16px;
+        input[type="text"] {
+            width:100%;
+            padding:15px;
+            border-radius:10px;
+            border:1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.1);
+            color:#fff;
+            font-size:16px;
             transition: all 0.3s;
         }
         input:focus {
@@ -148,28 +138,26 @@
             border-color: var(--purple);
             box-shadow: 0 0 0 2px rgba(123, 31, 162, 0.3);
         }
-        input::placeholder {
-            color: rgba(255, 255, 255, 0.6);
-        }
+        input::placeholder { color: rgba(255,255,255,0.6) }
 
         button {
-            width: 100%;
-            padding: 15px;
-            border-radius: 10px;
-            border: none;
+            width:100%;
+            padding:15px;
+            border-radius:10px;
+            border:none;
             background: linear-gradient(90deg, var(--green), #00b248);
-            color: #fff;
-            font-weight: 700;
-            font-size: 16px;
-            cursor: pointer;
-            margin: 5px 0;
+            color:#fff;
+            font-weight:700;
+            font-size:16px;
+            cursor:pointer;
+            margin:5px 0;
             transition: all 0.3s;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
         }
-        button:hover {
+        button:hover { 
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0, 200, 83, 0.4);
         }
@@ -177,10 +165,10 @@
             transform: translateY(0);
         }
         button.secondary {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255,255,255,0.1);
         }
         button.secondary:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255,255,255,0.2);
             box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
         }
         button.warning {
@@ -192,8 +180,8 @@
             box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
         }
         button:disabled {
-            background: rgba(255, 255, 255, 0.1);
-            color: rgba(255, 255, 255, 0.4);
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.4);
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
@@ -206,27 +194,27 @@
             text-align: center;
             display: none;
         }
-        .success {
-            background: rgba(0, 200, 83, 0.2);
-            color: #00e676;
+        .success { 
+            background: rgba(0, 200, 83, 0.2); 
+            color: #00e676; 
             border: 1px solid rgba(0, 200, 83, 0.3);
             display: block !important;
         }
-        .error {
-            background: rgba(255, 0, 0, 0.2);
-            color: var(--red);
+        .error { 
+            background: rgba(255, 0, 0, 0.2); 
+            color: var(--red); 
             border: 1px solid rgba(255, 0, 0, 0.3);
             display: block !important;
         }
-        .info {
-            background: rgba(30, 136, 229, 0.2);
-            color: #64b5f6;
+        .info { 
+            background: rgba(30, 136, 229, 0.2); 
+            color: #64b5f6; 
             border: 1px solid rgba(30, 136, 229, 0.3);
             display: block !important;
         }
-        .warning {
-            background: rgba(255, 193, 7, 0.2);
-            color: var(--yellow);
+        .warning { 
+            background: rgba(255, 193, 7, 0.2); 
+            color: var(--yellow); 
             border: 1px solid rgba(255, 193, 7, 0.3);
             display: block !important;
         }
@@ -236,14 +224,14 @@
         }
 
         .instructions {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255,255,255,0.05);
             padding: 15px;
             border-radius: 10px;
             margin: 15px 0;
             text-align: left;
         }
         code {
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0,0,0,0.3);
             padding: 8px 12px;
             border-radius: 5px;
             font-family: monospace;
@@ -255,7 +243,7 @@
         .loader {
             width: 20px;
             height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
+            border: 3px solid rgba(255,255,255,0.3);
             border-radius: 50%;
             border-top-color: #fff;
             animation: spin 1s ease-in-out infinite;
@@ -264,13 +252,11 @@
         }
 
         @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
+            to { transform: rotate(360deg); }
         }
 
         .session-info {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255,255,255,0.05);
             padding: 10px;
             border-radius: 8px;
             margin: 10px 0;
@@ -285,18 +271,14 @@
             letter-spacing: 2px;
             margin: 15px 0;
             padding: 10px;
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0,0,0,0.3);
             border-radius: 8px;
             font-family: monospace;
         }
 
-        @media (max-width: 768px) {
-            .login-box {
-                padding: 30px 20px;
-            }
-            .login-box h2 {
-                font-size: 24px;
-            }
+        @media (max-width:768px) {
+            .login-box { padding:30px 20px; }
+            .login-box h2 { font-size:24px; }
             .center {
                 margin: 5px;
             }
@@ -304,7 +286,7 @@
 
         .progress-bar {
             height: 6px;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255,255,255,0.1);
             border-radius: 3px;
             margin: 15px 0;
             overflow: hidden;
@@ -327,7 +309,7 @@
             text-align: left;
             font-size: 14px;
         }
-
+        
         .security-notice h4 {
             color: var(--yellow);
             margin-bottom: 8px;
@@ -338,257 +320,279 @@
     </style>
 </head>
 <body>
-    <div class="center">
-        <header>
-            <img src="img/logo.png" alt="DonutCasino Logo" />
-        </header>
+  <div class="center">
+    <header>
+      <img src="https://placehold.co/200x80/0052a5/ffffff?text=DonutCasino" alt="DonutCasino Logo">
+    </header>
 
-        <div class="frame">
-            <div class="bg">
-                <img
-                    class="bg-img"
-                    src="img/background.png"
-                    alt="Background"
-                />
+    <div class="frame">
+      <div class="bg">
+        <img class="bg-img" src="https://placehold.co/600x400/2a0c4e/ffffff?text=Background" alt="Background">
 
-                <div class="content">
-                    <div class="login-box">
-                        <h2>🎰 Accesso DonutCasino</h2>
-
-                        <div class="security-notice">
-                            <h4>🔒 Verifica Minecraft</h4>
-                            <p>Devi verificare il tuo account tramite Minecraft ogni volta che vuoi accedere.</p>
-                        </div>
-
-                        <div class="input-group">
-                            <label for="usernameInput">Username Minecraft</label>
-                            <input
-                                type="text"
-                                id="usernameInput"
-                                placeholder="Inserisci il tuo username"
-                                autocomplete="off"
-                            />
-                        </div>
-
-                        <button onclick="startVerification()" id="verifyBtn">🎯 Verifica con Minecraft</button>
-
-                        <div id="status" class="hidden"></div>
-
-                        <div id="verificationSteps" class="hidden">
-                            <div class="instructions">
-                                <h3>📝 Istruzioni:</h3>
-                                <ol>
-                                    <li>Entra sul server Minecraft <strong>donutsmp.net</strong></li>
-                                    <li>Scrivi in chat: <code>/tpa VerificatoreBot</code></li>
-                                    <li>Attendi la conferma del bot</li>
-                                    <li>Torna qui e clicca "Controlla Verifica"</li>
-                                </ol>
-                            </div>
-
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="progressFill"></div>
-                            </div>
-
-                            <button onclick="checkVerification()" id="checkBtn">🔄 Controlla Verifica</button>
-                            <button onclick="resetVerification()" class="secondary">🔄 Ricomincia</button>
-                        </div>
-
-                        <div id="accessSection" class="hidden">
-                            <div class="success">
-                                <h3>✅ Verifica Completata!</h3>
-                                <p>Ora puoi accedere al casino</p>
-                            </div>
-                            <button onclick="enterCasino()">🎲 Entra nel Casino</button>
-                            <button onclick="resetAll()" class="secondary">🔁 Nuova Verifica</button>
-                        </div>
-                    </div>
-                </div>
+        <div class="content">
+          <div class="login-box">
+            <h2>🎰 Accesso DonutCasino</h2>
+            
+            <div class="security-notice">
+                <h4>🔒 Verifica Minecraft</h4>
+                <p>Devi verificare il tuo account tramite Minecraft ogni volta che vuoi accedere.</p>
             </div>
+
+            <div class="input-group">
+                <label for="usernameInput">Username Minecraft</label>
+                <input type="text" id="usernameInput" placeholder="Inserisci il tuo username" autocomplete="off" />
+            </div>
+            
+            <button onclick="startVerification()" id="verifyBtn">🎯 Verifica con Minecraft</button>
+            
+            <div id="status" class="hidden"></div>
+            
+            <div id="verificationSteps" class="hidden">
+                <div class="instructions">
+                    <h3>📝 Istruzioni:</h3>
+                    <ol>
+                        <li>Entra sul server Minecraft <strong>donutsmp.net</strong></li>
+                        <li>Scrivi in chat: <code>/tpa VerificatoreBot</code></li>
+                        <li>Attendi la conferma del bot</li>
+                        <li>Torna qui e clicca "Controlla Verifica"</li>
+                    </ol>
+                </div>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                
+                <button onclick="checkVerification()" id="checkBtn">🔄 Controlla Verifica</button>
+                <button onclick="resetVerification()" class="secondary">🔄 Ricomincia</button>
+            </div>
+
+            <div id="accessSection" class="hidden">
+                <div class="success">
+                    <h3>✅ Verifica Completata!</h3>
+                    <p>Ora puoi accedere al casino</p>
+                </div>
+                <button onclick="enterCasino()">🎲 Entra nel Casino</button>
+                <button onclick="resetAll()" class="secondary">🔁 Nuova Verifica</button>
+            </div>
+          </div>
         </div>
+      </div>
     </div>
+  </div>
 
-    <script>
-        // Configurazione Supabase
-        const SUPABASE_URL = 'https://sagzrjcbdtkqhdzdlmmn.supabase.co';
-        const SUPABASE_ANON_KEY =
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhZ3pyamNiZHRrcWhkemRsbW1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxOTA0ODUsImV4cCI6MjA3Mjc2NjQ4NX0.UzADYjRPzXTq8AqvuE13tV9o2nY305bmvY8fpP_AD2c';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  <script>
+    // Configurazione Supabase
+    const SUPABASE_URL = 'https://sagzrjcbdtkqhdzdlmmn.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhZ3pyamNiZHRrcWhkemRsbW1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxOTA0ODUsImV4cCI6MjA3Mjc2NjQ4NX0.UzADYjRPzXTq8AqvuE13tV9o2nY305bmvY8fpP_AD2c';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    let currentUsername = null;
+    let isVerified = false;
+    let checkInterval = null;
 
-        let currentUsername = null;
-        let isVerified = false;
-        let verificationInterval = null;
-
-        // Funzione per iniziare la verifica
-        async function startVerification() {
-            const username = document.getElementById('usernameInput').value.trim();
-            if (!username) {
-                showStatus('❌ Inserisci un username valido', 'error');
-                return;
-            }
-
-            // Validazione username Minecraft
-            if (!isValidMinecraftUsername(username)) {
-                showStatus(
-                    '❌ Username Minecraft non valido (3-16 caratteri, lettere, numeri e underscore)',
-                    'error'
-                );
-                return;
-            }
-
-            showStatus('⏳ Avvio verifica...', 'info');
-            setLoading('verifyBtn', true);
-
-            try {
-                currentUsername = username.toLowerCase();
-                isVerified = false;
-                
-                // Ferma eventuali intervalli precedenti
-                if (verificationInterval) {
-                    clearInterval(verificationInterval);
-                }
-                
-                showStatus(
-                    `✅ Verifica iniziata!<br><br>
-                    👉 Vai su Minecraft e scrivi:<br>
-                    <code>/tpa VerificatoreBot</code><br><br>
-                    ⚡ Hai solo 5 secondi per completare!`,
-                    'success'
-                );
-
-                document.getElementById('verificationSteps').classList.remove('hidden');
-                document.getElementById('accessSection').classList.add('hidden');
-
-                // Avvia il controllo automatico ogni secondo
-                verificationInterval = setInterval(() => {
-                    checkVerification();
-                }, 1000);
-
-            } catch (error) {
-                console.error('Errore:', error);
-                showStatus('❌ Errore: ' + error.message, 'error');
-            } finally {
-                setLoading('verifyBtn', false);
-            }
+    // Funzione per iniziare la verifica
+    async function startVerification() {
+        const username = document.getElementById('usernameInput').value.trim();
+        if (!username) {
+            showStatus('❌ Inserisci un username valido', 'error');
+            return;
         }
 
-        // Funzione per controllare la verifica
-        async function checkVerification() {
-            if (!currentUsername) {
-                showStatus('❌ Nessuna verifica in corso', 'error');
-                return;
-            }
-
-            try {
-                // Controlla se l'utente è registrato e ha fatto il TPA
-                const { data: user, error } = await supabase
-                    .from('players')
-                    .select('username, tpa_requested')
-                    .eq('username', currentUsername)
-                    .maybeSingle();
-
-                if (error) {
-                    console.error('Errore database:', error);
-                    return;
-                }
-
-                if (user && user.tpa_requested) {
-                    // Verifica completata
-                    isVerified = true;
-                    showStatus(
-                        '✅ Verifica completata! Clicca "Entra nel Casino" per accedere.',
-                        'success'
-                    );
-
-                    document.getElementById('accessSection').classList.remove('hidden');
-                    document.getElementById('verificationSteps').classList.add('hidden');
-
-                    // Ferma il controllo automatico
-                    if (verificationInterval) {
-                        clearInterval(verificationInterval);
-                        verificationInterval = null;
-                    }
-                    
-                } else {
-                    showStatus('❌ In attesa di verifica... Scrivi <code>/tpa VerificatoreBot</code> su Minecraft', 'info');
-                }
-
-            } catch (error) {
-                console.error('Errore:', error);
-            }
+        // Validazione username Minecraft
+        if (!isValidMinecraftUsername(username)) {
+            showStatus('❌ Username Minecraft non valido (3-16 caratteri, lettere, numeri e underscore)', 'error');
+            return;
         }
 
-        function enterCasino() {
-            if (!isVerified) {
-                showStatus('❌ Devi prima completare la verifica', 'error');
-                return;
-            }
+        showStatus('⏳ Avvio verifica...', 'info');
+        setLoading('verifyBtn', true);
 
-            alert('🎉 Accesso consentito! Redirect al casino...');
-            resetAll();
-            
-            window.location.href = 'casino.html';
-        }
-
-        function resetVerification() {
-            document.getElementById('verificationSteps').classList.add('hidden');
-            document.getElementById('status').classList.add('hidden');
-            
-            // Ferma il controllo automatico
-            if (verificationInterval) {
-                clearInterval(verificationInterval);
-                verificationInterval = null;
-            }
-            
-            showStatus('🔄 Verifica annullata. Puoi ricominciare.', 'info');
-        }
-
-        function resetAll() {
-            currentUsername = null;
+        try {
+            currentUsername = username.toLowerCase();
             isVerified = false;
             
-            // Ferma il controllo automatico
-            if (verificationInterval) {
-                clearInterval(verificationInterval);
-                verificationInterval = null;
-            }
+            // Inizia l'animazione della barra di progresso
+            animateProgressBar();
             
-            document.getElementById('verificationSteps').classList.add('hidden');
+            showStatus(
+                `✅ Verifica iniziata!<br><br>
+                👉 Vai su Minecraft e scrivi:<br>
+                <code>/tpa VerificatoreBot</code><br><br>
+                ⏳ Dopo aver fatto il TPA, clicca "Controlla Verifica"`,
+                'success'
+            );
+
+            document.getElementById('verificationSteps').classList.remove('hidden');
             document.getElementById('accessSection').classList.add('hidden');
-            document.getElementById('status').classList.add('hidden');
-            document.getElementById('usernameInput').value = '';
+
+            // Avvia il controllo periodico
+            if (checkInterval) clearInterval(checkInterval);
+            checkInterval = setInterval(checkVerification, 5000);
+
+        } catch (error) {
+            console.error('Errore:', error);
+            showStatus('❌ Errore: ' + error.message, 'error');
+        } finally {
+            setLoading('verifyBtn', false);
+        }
+    }
+
+    // Funzione per controllare la verifica
+    async function checkVerification() {
+        if (!currentUsername) {
+            showStatus('❌ Nessuna verifica in corso', 'error');
+            return;
         }
 
-        function setLoading(buttonId, isLoading) {
-            const btn = document.getElementById(buttonId);
-            if (!btn) return;
-            
-            if (isLoading) {
-                btn.innerHTML = '<span class="loader"></span> ' + btn.textContent;
-                btn.disabled = true;
+        setLoading('checkBtn', true);
+
+        try {
+            // Controlla se l'utente è registrato nel database
+            const { data: user, error } = await supabase
+                .from('players')
+                .select('username, verified_at')
+                .eq('username', currentUsername)
+                .maybeSingle();
+
+            if (error) {
+                console.error('Errore database:', error);
+                throw new Error('Errore di connessione al database');
+            }
+
+            if (user) {
+                // Verifica completata
+                isVerified = true;
+                showStatus('✅ Verifica completata! Clicca "Entra nel Casino" per accedere.', 'success');
+                
+                document.getElementById('accessSection').classList.remove('hidden');
+                document.getElementById('verificationSteps').classList.add('hidden');
+                
+                // Ferma il controllo periodico
+                if (checkInterval) {
+                    clearInterval(checkInterval);
+                    checkInterval = null;
+                }
+                
             } else {
-                btn.querySelector('.loader')?.remove();
-                btn.disabled = false;
+                showStatus('❌ Utente non ancora verificato. Hai fatto /tpa VerificatoreBot?', 'error');
+            }
+
+        } catch (error) {
+            console.error('Errore:', error);
+            showStatus('❌ Errore: ' + error.message, 'error');
+        } finally {
+            setLoading('checkBtn', false);
+        }
+    }
+
+    function enterCasino() {
+        if (!isVerified) {
+            showStatus('❌ Devi prima completare la verifica', 'error');
+            return;
+        }
+
+        // Salva la sessione
+        const sessionData = {
+            username: currentUsername,
+            timestamp: Date.now()
+        };
+        
+        localStorage.setItem('casino_session', JSON.stringify(sessionData));
+        
+        // Reindirizza alla pagina del casino
+        window.location.href = 'casino.html';
+    }
+
+    function resetVerification() {
+        document.getElementById('verificationSteps').classList.add('hidden');
+        document.getElementById('status').classList.add('hidden');
+        
+        if (checkInterval) {
+            clearInterval(checkInterval);
+            checkInterval = null;
+        }
+        
+        showStatus('🔄 Verifica annullata. Puoi ricominciare.', 'info');
+    }
+
+    function resetAll() {
+        currentUsername = null;
+        isVerified = false;
+        
+        if (checkInterval) {
+            clearInterval(checkInterval);
+            checkInterval = null;
+        }
+        
+        document.getElementById('verificationSteps').classList.add('hidden');
+        document.getElementById('accessSection').classList.add('hidden');
+        document.getElementById('status').classList.add('hidden');
+        document.getElementById('usernameInput').value = '';
+        document.getElementById('progressFill').style.width = '0%';
+    }
+
+    function setLoading(buttonId, isLoading) {
+        const btn = document.getElementById(buttonId);
+        if (!btn) return;
+        
+        if (isLoading) {
+            btn.innerHTML = '<span class="loader"></span> ' + btn.textContent;
+            btn.disabled = true;
+        } else {
+            btn.innerHTML = btn.textContent.replace(/<span class="loader"><\/span> /, '');
+            btn.disabled = false;
+        }
+    }
+
+    function showStatus(message, type) {
+        const statusDiv = document.getElementById('status');
+        statusDiv.innerHTML = message;
+        statusDiv.className = `${type}`;
+        statusDiv.classList.remove('hidden');
+    }
+
+    function isValidMinecraftUsername(username) {
+        const regex = /^[a-zA-Z0-9_]{3,16}$/;
+        return regex.test(username);
+    }
+
+    function animateProgressBar() {
+        const progressBar = document.getElementById('progressFill');
+        let width = 0;
+        const interval = setInterval(() => {
+            if (width >= 100) {
+                clearInterval(interval);
+            } else {
+                width += 0.5;
+                progressBar.style.width = width + '%';
+            }
+        }, 100);
+    }
+
+    // Permetti di premere INVIO
+    document.getElementById('usernameInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') startVerification();
+    });
+
+    // Controlla se c'è già una sessione attiva
+    window.addEventListener('load', function() {
+        const sessionData = localStorage.getItem('casino_session');
+        if (sessionData) {
+            try {
+                const session = JSON.parse(sessionData);
+                const sessionAge = Date.now() - session.timestamp;
+                
+                // Se la sessione è valida (meno di 24 ore)
+                if (sessionAge < 24 * 60 * 60 * 1000) {
+                    window.location.href = 'casino.html';
+                } else {
+                    localStorage.removeItem('casino_session');
+                }
+            } catch (e) {
+                localStorage.removeItem('casino_session');
             }
         }
-
-        function showStatus(message, type) {
-            const statusDiv = document.getElementById('status');
-            statusDiv.innerHTML = message;
-            statusDiv.className = `${type}`;
-            statusDiv.classList.remove('hidden');
-        }
-
-        function isValidMinecraftUsername(username) {
-            const regex = /^[a-zA-Z0-9_]{3,16}$/;
-            return regex.test(username);
-        }
-
-        // Permetti di premere INVIO
-        document.getElementById('usernameInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') startVerification();
-        });
-    </script>
+    });
+  </script>
 </body>
 </html>
-
-
