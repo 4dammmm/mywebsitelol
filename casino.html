@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DonutCasino - Home</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --frame-border: #11023F;
@@ -147,6 +148,22 @@
             font-size: 1.3rem;
             font-weight: bold;
             color: var(--green);
+        }
+
+        .username-card {
+            background: rgba(123, 31, 162, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 10px 15px;
+            text-align: center;
+            backdrop-filter: blur(6px);
+            min-width: 120px;
+        }
+
+        .username-text {
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--yellow);
         }
 
         .btn {
@@ -499,8 +516,11 @@
                 </div>
                 
                 <div class="user-info">
+                    <div class="username-card">
+                        <div class="username-text" id="username-display">Guest</div>
+                    </div>
                     <div class="balance-card">
-                        <div class="balance-amount">1,250.00 €</div>
+                        <div class="balance-amount" id="balance-display">0.00 €</div>
                     </div>
                     <button class="btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
                 </div>
@@ -674,15 +694,16 @@
     </div>
   </div>
 
-<script>
+  <script>
     // Configurazione Supabase
     const SUPABASE_URL = 'https://sagzrjcbdtkqhdzdlmmn.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhZ3pyamNiZHRrcWhkemRsbW1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxOTA0ODUsImV4cCI6MjA3Mjc2NjQ4NX0.UzADYjRPzXTq8AqvuE13tV9o2nY305bmvY8fpP_AD2c';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhbmFzZSIsInJlZiI6InNhZ3pyamNiZHRrcWhkemRsbW1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxOTA0ODUsImV4cCI6MjA3Mjc2NjQ4NX0.UzADYjRPzXTq8AqvuE13tV9o2nY305bmvY8fpP_AD2c';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // Variabili globali
     let currentUser = null;
     let userBalance = 0;
+    let userData = null;
 
     // Funzione per caricare i dati dell'utente
     async function loadUserData() {
@@ -697,18 +718,29 @@
             }
 
             // Recupera i dati dell'utente dal database
-            const { data: userData, error: userError } = await supabase
+            const { data: userDataFromDB, error: userError } = await supabase
                 .from('players')
-                .select('username, balance')
+                .select('username, balance, tpa_requested')
                 .eq('user_id', session.user.id)
                 .single();
 
             if (userError) {
                 console.error('Errore nel recupero dati utente:', userError);
+                showError('Errore nel caricamento del profilo. Riprova più tardi.');
+                return;
+            }
+
+            // Verifica se l'utente ha completato la verifica TPA
+            if (!userDataFromDB.tpa_requested) {
+                showError('Devi completare la verifica su Minecraft prima di accedere al casinò.');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 3000);
                 return;
             }
 
             // Aggiorna le variabili globali
+            userData = userDataFromDB;
             currentUser = userData.username;
             userBalance = userData.balance || 0;
 
@@ -717,7 +749,34 @@
 
         } catch (error) {
             console.error('Errore nel caricamento dati utente:', error);
+            showError('Errore di connessione. Riprova più tardi.');
         }
+    }
+
+    // Funzione per mostrare messaggi di errore
+    function showError(message) {
+        // Crea un elemento per mostrare l'errore
+        const errorDiv = document.createElement('div');
+        errorDiv.style.position = 'fixed';
+        errorDiv.style.top = '20px';
+        errorDiv.style.left = '50%';
+        errorDiv.style.transform = 'translateX(-50%)';
+        errorDiv.style.backgroundColor = 'var(--red)';
+        errorDiv.style.color = 'white';
+        errorDiv.style.padding = '15px 20px';
+        errorDiv.style.borderRadius = '8px';
+        errorDiv.style.zIndex = '1000';
+        errorDiv.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+        errorDiv.textContent = message;
+        
+        document.body.appendChild(errorDiv);
+        
+        // Rimuovi il messaggio dopo 5 secondi
+        setTimeout(() => {
+            if (document.body.contains(errorDiv)) {
+                document.body.removeChild(errorDiv);
+            }
+        }, 5000);
     }
 
     // Funzione per aggiornare l'UI con i dati dell'utente
@@ -725,29 +784,56 @@
         if (currentUser) {
             // Aggiorna il saldo (formattato con due decimali)
             const formattedBalance = userBalance.toFixed(2);
-            document.querySelector('.balance-amount').textContent = `${formattedBalance} €`;
+            document.getElementById('balance-display').textContent = `${formattedBalance} €`;
             
-            // Puoi anche aggiungere il nome utente se vuoi
-            // document.querySelector('.user-info').insertAdjacentHTML('afterbegin', 
-            //     `<div class="username">${currentUser}</div>`);
+            // Aggiorna il nome utente
+            document.getElementById('username-display').textContent = currentUser;
         }
     }
 
     // Funzione di logout
     async function logout() {
-        if (confirm('Are you sure you want to log out?')) {
+        if (confirm('Sei sicuro di voler effettuare il logout?')) {
             const { error } = await supabase.auth.signOut();
             if (error) {
                 console.error('Errore durante il logout:', error);
+                showError('Errore durante il logout. Riprova.');
             } else {
-                window.location.href = 'login.html';
+                window.location.href = 'index.html';
             }
         }
+    }
+
+    // Funzione per aggiornare il saldo in tempo reale (simulato)
+    function simulateRealTimeUpdates() {
+        // Simula aggiornamenti del saldo ogni 30 secondi
+        setInterval(async () => {
+            if (currentUser) {
+                try {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (!session) return;
+                    
+                    const { data: updatedUser, error } = await supabase
+                        .from('players')
+                        .select('balance')
+                        .eq('user_id', session.user.id)
+                        .single();
+                    
+                    if (!error && updatedUser && updatedUser.balance !== userBalance) {
+                        userBalance = updatedUser.balance;
+                        updateUIWithUserData();
+                    }
+                } catch (error) {
+                    console.error('Errore nell\'aggiornamento del saldo:', error);
+                }
+            }
+        }, 30000);
     }
 
     // Carica i dati dell'utente quando la pagina è pronta
     document.addEventListener('DOMContentLoaded', function() {
         loadUserData();
+        simulateRealTimeUpdates();
         
         // Simple interactivity
         // Game card hover effect
@@ -804,6 +890,7 @@
     document.getElementById('game6-title').textContent = 'Mines';
     document.getElementById('game6-desc').textContent = 'Find the treasures';
     document.getElementById('game6-img').src = 'img/mines.png';
-</script>
+
+  </script>
 </body>
 </html>
