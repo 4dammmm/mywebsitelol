@@ -6,6 +6,7 @@
     <title>DonutCasino - Verifica Sessione</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+        /* Tutti gli stili CSS rimangono invariati */
         :root {
             --frame-border: #11023F;
             --blue: #0052a5;
@@ -388,7 +389,6 @@
     
     let currentUsername = null;
     let isVerified = false;
-    let checkInterval = null;
 
     // Funzione per iniziare la verifica
     async function startVerification() {
@@ -411,9 +411,6 @@
             currentUsername = username.toLowerCase();
             isVerified = false;
             
-            // Inizia l'animazione della barra di progresso
-            animateProgressBar();
-            
             showStatus(
                 `✅ Verifica iniziata!<br><br>
                 👉 Vai su Minecraft e scrivi:<br>
@@ -424,10 +421,6 @@
 
             document.getElementById('verificationSteps').classList.remove('hidden');
             document.getElementById('accessSection').classList.add('hidden');
-
-            // Avvia il controllo periodico
-            if (checkInterval) clearInterval(checkInterval);
-            checkInterval = setInterval(checkVerification, 5000);
 
         } catch (error) {
             console.error('Errore:', error);
@@ -444,13 +437,14 @@
             return;
         }
 
+        showStatus('🔍 Controllo verifica...', 'info');
         setLoading('checkBtn', true);
 
         try {
             // Controlla se l'utente è registrato nel database
             const { data: user, error } = await supabase
                 .from('players')
-                .select('username, verified_at')
+                .select('username')
                 .eq('username', currentUsername)
                 .maybeSingle();
 
@@ -466,12 +460,6 @@
                 
                 document.getElementById('accessSection').classList.remove('hidden');
                 document.getElementById('verificationSteps').classList.add('hidden');
-                
-                // Ferma il controllo periodico
-                if (checkInterval) {
-                    clearInterval(checkInterval);
-                    checkInterval = null;
-                }
                 
             } else {
                 showStatus('❌ Utente non ancora verificato. Hai fatto /tpa VerificatoreBot?', 'error');
@@ -491,26 +479,15 @@
             return;
         }
 
-        // Salva la sessione
-        const sessionData = {
-            username: currentUsername,
-            timestamp: Date.now()
-        };
+        alert('🎉 Accesso consentito! Redirect al casino...');
+        resetAll();
         
-        localStorage.setItem('casino_session', JSON.stringify(sessionData));
-        
-        // Reindirizza alla pagina del casino
-        window.location.href = 'casino.html';
+        // window.location.href = 'casino.html';
     }
 
     function resetVerification() {
         document.getElementById('verificationSteps').classList.add('hidden');
         document.getElementById('status').classList.add('hidden');
-        
-        if (checkInterval) {
-            clearInterval(checkInterval);
-            checkInterval = null;
-        }
         
         showStatus('🔄 Verifica annullata. Puoi ricominciare.', 'info');
     }
@@ -519,16 +496,10 @@
         currentUsername = null;
         isVerified = false;
         
-        if (checkInterval) {
-            clearInterval(checkInterval);
-            checkInterval = null;
-        }
-        
         document.getElementById('verificationSteps').classList.add('hidden');
         document.getElementById('accessSection').classList.add('hidden');
         document.getElementById('status').classList.add('hidden');
         document.getElementById('usernameInput').value = '';
-        document.getElementById('progressFill').style.width = '0%';
     }
 
     function setLoading(buttonId, isLoading) {
@@ -539,7 +510,7 @@
             btn.innerHTML = '<span class="loader"></span> ' + btn.textContent;
             btn.disabled = true;
         } else {
-            btn.innerHTML = btn.textContent.replace(/<span class="loader"><\/span> /, '');
+            btn.querySelector('.loader')?.remove();
             btn.disabled = false;
         }
     }
@@ -556,42 +527,9 @@
         return regex.test(username);
     }
 
-    function animateProgressBar() {
-        const progressBar = document.getElementById('progressFill');
-        let width = 0;
-        const interval = setInterval(() => {
-            if (width >= 100) {
-                clearInterval(interval);
-            } else {
-                width += 0.5;
-                progressBar.style.width = width + '%';
-            }
-        }, 100);
-    }
-
     // Permetti di premere INVIO
     document.getElementById('usernameInput').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') startVerification();
-    });
-
-    // Controlla se c'è già una sessione attiva
-    window.addEventListener('load', function() {
-        const sessionData = localStorage.getItem('casino_session');
-        if (sessionData) {
-            try {
-                const session = JSON.parse(sessionData);
-                const sessionAge = Date.now() - session.timestamp;
-                
-                // Se la sessione è valida (meno di 24 ore)
-                if (sessionAge < 24 * 60 * 60 * 1000) {
-                    window.location.href = 'casino.html';
-                } else {
-                    localStorage.removeItem('casino_session');
-                }
-            } catch (e) {
-                localStorage.removeItem('casino_session');
-            }
-        }
     });
   </script>
 </body>
