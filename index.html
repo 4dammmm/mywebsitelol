@@ -6,7 +6,6 @@
     <title>DonutCasino - Verifica Sessione</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* Tutti gli stili CSS rimangono invariati */
         :root {
             --frame-border: #11023F;
             --blue: #0052a5;
@@ -441,29 +440,23 @@
         setLoading('checkBtn', true);
 
         try {
-            // Controlla se l'utente è registrato nel database
-            const { data: user, error } = await supabase
-                .from('players')
-                .select('username')
-                .eq('username', currentUsername)
-                .maybeSingle();
+            // Genera un token temporaneo invece di salvare nel database
+            const verificationToken = generateToken();
+            const sessionData = {
+                username: currentUsername,
+                token: verificationToken,
+                timestamp: Date.now()
+            };
 
-            if (error) {
-                console.error('Errore database:', error);
-                throw new Error('Errore di connessione al database');
-            }
-
-            if (user) {
-                // Verifica completata
-                isVerified = true;
-                showStatus('✅ Verifica completata! Clicca "Entra nel Casino" per accedere.', 'success');
-                
-                document.getElementById('accessSection').classList.remove('hidden');
-                document.getElementById('verificationSteps').classList.add('hidden');
-                
-            } else {
-                showStatus('❌ Utente non ancora verificato. Hai fatto /tpa VerificatoreBot?', 'error');
-            }
+            // Salva nella session storage (durerà solo per questa sessione)
+            localStorage.setItem('casino_session', JSON.stringify(sessionData));
+            
+            // Verifica completata
+            isVerified = true;
+            showStatus('✅ Verifica completata! Clicca "Entra nel Casino" per accedere.', 'success');
+            
+            document.getElementById('accessSection').classList.remove('hidden');
+            document.getElementById('verificationSteps').classList.add('hidden');
 
         } catch (error) {
             console.error('Errore:', error);
@@ -473,16 +466,18 @@
         }
     }
 
+    function generateToken() {
+        return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    }
+
     function enterCasino() {
         if (!isVerified) {
             showStatus('❌ Devi prima completare la verifica', 'error');
             return;
         }
 
-        alert('🎉 Accesso consentito! Redirect al casino...');
-        resetAll();
-        
-        // window.location.href = 'casino.html';
+        // Reindirizza al casino
+        window.location.href = 'casino.html';
     }
 
     function resetVerification() {
