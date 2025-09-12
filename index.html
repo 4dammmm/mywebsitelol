@@ -6,7 +6,6 @@
     <title>DonutCasino - Verifica Sessione</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* Tutti gli stili CSS rimangono invariati */
         :root {
             --frame-border: #11023F;
             --blue: #0052a5;
@@ -256,27 +255,6 @@
             to { transform: rotate(360deg); }
         }
 
-        .session-info {
-            background: rgba(255,255,255,0.05);
-            padding: 10px;
-            border-radius: 8px;
-            margin: 10px 0;
-            text-align: left;
-            font-size: 14px;
-        }
-
-        .verification-code {
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--green);
-            letter-spacing: 2px;
-            margin: 15px 0;
-            padding: 10px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 8px;
-            font-family: monospace;
-        }
-
         @media (max-width:768px) {
             .login-box { padding:30px 20px; }
             .login-box h2 { font-size:24px; }
@@ -464,54 +442,55 @@
     }
 
     // Funzione per controllare la verifica
-async function checkVerification() {
-    if (!currentUsername) {
-        showStatus('❌ Nessuna verifica in corso', 'error');
-        return;
-    }
-
-    showStatus('🔍 Controllo verifica...', 'info');
-    setLoading('checkBtn', true);
-
-    try {
-        // Prima controlla se l'utente è verificato nel database
-        const { data: user, error } = await supabase
-            .from('players')
-            .select('username, is_verified')
-            .eq('username', currentUsername)
-            .maybeSingle();
-
-        if (error) {
-            console.error('Errore database:', error);
-            throw new Error('Errore di connessione al database');
+    async function checkVerification() {
+        if (!currentUsername) {
+            showStatus('❌ Nessuna verifica in corso', 'error');
+            return;
         }
 
-        if (user && user.is_verified) {
-            // Verifica completata - salva la sessione
-            const sessionData = {
-                username: currentUsername,
-                timestamp: Date.now()
-            };
-            localStorage.setItem('casino_session', JSON.stringify(sessionData));
-            
-            isVerified = true;
-            showStatus('✅ Verifica completata! Reindirizzamento al casino...', 'success');
-            
-            setTimeout(() => {
-                window.location.href = 'casino.html';
-            }, 1500);
-            
-        } else {
-            showStatus('❌ Verifica non completata. Hai fatto /tpa VerificatoreBot?', 'error');
-        }
+        showStatus('🔍 Controllo verifica...', 'info');
+        setLoading('checkBtn', true);
 
-    } catch (error) {
-        console.error('Errore:', error);
-        showStatus('❌ Errore: ' + error.message, 'error');
-    } finally {
-        setLoading('checkBtn', false);
+        try {
+            // Controlla se l'utente è verificato nel database
+            const { data: user, error } = await supabase
+                .from('players')
+                .select('username, is_verified')
+                .eq('username', currentUsername)
+                .maybeSingle();
+
+            if (error) {
+                console.error('Errore database:', error);
+                throw new Error('Errore di connessione al database');
+            }
+
+            if (user && user.is_verified) {
+                // Verifica completata - salva la sessione
+                const sessionData = {
+                    username: currentUsername,
+                    timestamp: Date.now()
+                };
+                localStorage.setItem('casino_session', JSON.stringify(sessionData));
+                
+                isVerified = true;
+                showStatus('✅ Verifica completata! Reindirizzamento al casino...', 'success');
+                
+                // Reindirizza dopo un breve delay
+                setTimeout(() => {
+                    window.location.href = 'casino.html';
+                }, 1500);
+                
+            } else {
+                showStatus('❌ Verifica non completata. Hai fatto /tpa VerificatoreBot?', 'error');
+            }
+
+        } catch (error) {
+            console.error('Errore:', error);
+            showStatus('❌ Errore: ' + error.message, 'error');
+        } finally {
+            setLoading('checkBtn', false);
+        }
     }
-}
 
     function enterCasino() {
         if (!isVerified) {
@@ -581,4 +560,3 @@ async function checkVerification() {
   </script>
 </body>
 </html>
-
