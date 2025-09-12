@@ -126,6 +126,7 @@
             font-size: 1.8rem;
             font-weight: bold;
             color: white;
+            text-decoration: none;
         }
 
         .user-info {
@@ -397,6 +398,7 @@
 
         .footer-links {
             list-style: none;
+            padding: 0;
         }
 
         .footer-link {
@@ -453,6 +455,7 @@
             
             .user-info {
                 flex-wrap: wrap;
+                justify-content: center;
             }
             
             .games-grid {
@@ -595,10 +598,10 @@
         <div class="content">
             <!-- Header -->
             <div class="main-header">
-                <div class="logo">
+                <a href="casino.html" class="logo">
                     <img src="https://placehold.co/200x80/0052a5/ffffff?text=DonutCasino" alt="DonutCasino Logo" height="30">
                     <span>DonutCasino</span>
-                </div>
+                </a>
                 
                 <div class="user-info">
                     <div class="balance-card">
@@ -800,56 +803,105 @@
   </div>
 
 <script>
-    // Variabili globali
-    let currentUser = null;
-    let userBalance = 0;
-    let sessionToken = null;
+    // Configurazione Supabase
+    const SUPABASE_URL = 'https://sagzrjcbdtkqhdzdlmmn.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhZ3pyamNiZHRrcWhkemRsbW1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxOTA0ODUsImV4cCI6MjA3Mjc2NjQ4NX0.UzADYjRPzXTq8AqvuE13tV9o2nY305bmvY8fpP_AD2c';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Controllo di sicurezza all'avvio
-    document.addEventListener('DOMContentLoaded', function() {
-        // Verifica se l'utente ha una sessione valida
+    // Funzione per verificare la sessione
+    function verifySession() {
         const sessionData = localStorage.getItem('casino_session');
         
         if (!sessionData) {
             // Nessuna sessione trovata, reindirizza al login
-            window.location.href = 'login.html';
-            return;
+            window.location.href = 'index.html';
+            return null;
         }
         
         try {
             const session = JSON.parse(sessionData);
             
-            // Verifica che la sessione non sia scaduta (4 ore)
+            // Verifica che la sessione non sia scaduta (24 ore)
             const sessionAge = Date.now() - session.timestamp;
-            if (sessionAge > 4 * 60 * 60 * 1000) {
+            if (sessionAge > 24 * 60 * 60 * 1000) {
                 // Sessione scaduta
                 localStorage.removeItem('casino_session');
-                showNotification('Sessione scaduta. Effettua di nuovo la verifica.', 'error');
-                setTimeout(() => window.location.href = 'login.html', 2000);
-                return;
+                showNotification('Sessione scaduta. Effettua di nuovo il login.', 'error');
+                setTimeout(() => window.location.href = 'index.html', 2000);
+                return null;
             }
             
-            // La sessione è valida, carica i dati utente
-            currentUser = session.username;
-            sessionToken = session.token;
-            
-            // Imposta un saldo iniziale per la sessione (100€)
-            userBalance = 100.00;
-            
-            // Aggiorna l'interfaccia utente
-            updateUIWithUserData();
-            
+            return session;
         } catch (e) {
             // Sessione non valida
             localStorage.removeItem('casino_session');
-            window.location.href = 'login.html';
+            window.location.href = 'index.html';
+            return null;
         }
+    }
+
+    // Variabili globali
+    let currentUser = null;
+    let userBalance = 0;
+
+    // Controllo di sicurezza all'avvio
+    document.addEventListener('DOMContentLoaded', function() {
+        // Verifica la sessione
+        const session = verifySession();
+        if (!session) return;
+        
+        // La sessione è valida, carica i dati utente
+        currentUser = session.username;
+        loadUserData();
     });
+
+    // Funzione per caricare i dati dell'utente
+    async function loadUserData() {
+        try {
+            // Recupera i dati dell'utente dal database
+            const { data: userData, error: userError } = await supabase
+                .from('players')
+                .select('username, balance')
+                .eq('username', currentUser)
+                .single();
+
+            if (userError) {
+                console.error('Errore nel recupero dati utente:', userError);
+                // Se l'utente non esiste, crealo con saldo iniziale
+                const { error: insertError } = await supabase
+                    .from('players')
+                    .insert([{
+                        username: currentUser,
+                        balance: 100.00
+                    }]);
+                    
+                if (insertError) {
+                    console.error('Errore nella creazione utente:', insertError);
+                    showNotification('Errore nel caricamento del profilo.', 'error');
+                    return;
+                }
+                
+                // Ricarica i dati dell'utente appena creato
+                showNotification('Account creato con successo!', 'success');
+                return loadUserData();
+            }
+
+            // Aggiorna le variabili globali
+            userBalance = parseFloat(userData.balance) || 0;
+
+            // Aggiorna l'interfaccia utente
+            updateUIWithUserData();
+
+        } catch (error) {
+            console.error('Errore nel caricamento dati utente:', error);
+            showNotification('Errore nel caricamento del profilo.', 'error');
+        }
+    }
 
     // Funzione per aggiornare l'UI con i dati dell'utente
     function updateUIWithUserData() {
         if (currentUser) {
-            // Aggiorna il saldo (formattato con due decimales)
+            // Aggiorna il saldo (formattato con due decimali)
             const formattedBalance = userBalance.toFixed(2);
             document.getElementById('userBalance').textContent = `${formattedBalance} €`;
             
@@ -858,7 +910,29 @@
         }
     }
 
-    // Funzione per depositare fondi (modificata per non usare il database)
+    // Funzione per aggiornare il balance nel database
+    async function updateBalance(newBalance) {
+        try {
+            const { error } = await supabase
+                .from('players')
+                .update({ balance: newBalance })
+                .eq('username', currentUser);
+                
+            if (error) {
+                console.error('Errore nell\'aggiornamento del balance:', error);
+                return false;
+            }
+            
+            userBalance = newBalance;
+            updateUIWithUserData();
+            return true;
+        } catch (error) {
+            console.error('Errore nell\'aggiornamento del balance:', error);
+            return false;
+        }
+    }
+
+    // Funzione per depositare fondi
     async function depositFunds() {
         const amountInput = document.getElementById('depositAmount');
         const amount = parseFloat(amountInput.value);
@@ -868,13 +942,18 @@
             return;
         }
         
-        userBalance += amount;
-        updateUIWithUserData();
-        showNotification(`Depositati ${amount.toFixed(2)} € con successo!`, 'success');
-        closeDepositModal();
+        const newBalance = userBalance + amount;
+        const success = await updateBalance(newBalance);
+        
+        if (success) {
+            showNotification(`Depositati ${amount.toFixed(2)} € con successo!`, 'success');
+            closeDepositModal();
+        } else {
+            showNotification('Errore durante il deposito. Riprova più tardi.', 'error');
+        }
     }
 
-    // Funzione per giocare (modificata per non usare il database)
+    // Funzione per giocare
     function playGame(gameName) {
         if (userBalance <= 0) {
             showNotification('Deposita crediti per giocare.', 'error');
@@ -882,15 +961,19 @@
             return;
         }
         
+        // Qui implementerai la logica dei giochi
         showNotification(`Gioco ${gameName} avviato!`, 'info');
         
-        // Esempio: sottrai 10€ per giocare
-        setTimeout(() => {
+        // Esempio: sottrai 10€ per giocare (sostituisci con la logica reale)
+        setTimeout(async () => {
             const betAmount = 10;
             if (userBalance >= betAmount) {
-                userBalance -= betAmount;
-                updateUIWithUserData();
-                showNotification(`Hai perso ${betAmount} €. Riprova!`, 'error');
+                const newBalance = userBalance - betAmount;
+                const success = await updateBalance(newBalance);
+                
+                if (success) {
+                    showNotification(`Hai perso ${betAmount} €. Riprova!`, 'error');
+                }
             }
         }, 2000);
     }
@@ -900,7 +983,7 @@
         if (confirm('Sei sicuro di voler uscire?')) {
             // Rimuovi la sessione
             localStorage.removeItem('casino_session');
-            window.location.href = 'login.html';
+            window.location.href = 'index.html';
         }
     }
 
