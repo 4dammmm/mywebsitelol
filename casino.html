@@ -192,6 +192,7 @@
 
         .sidebar-section {
             margin-bottom: 20px;
+            position: relative;
         }
 
         .sidebar-title {
@@ -394,6 +395,8 @@
             margin-bottom: 15px;
             font-size: 1.2rem;
             color: white;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 8px;
         }
 
         .footer-links {
@@ -410,6 +413,8 @@
             text-decoration: none;
             transition: color 0.3s;
             font-size: 14px;
+            display: block;
+            padding: 5px 0;
         }
 
         .footer-link a:hover {
@@ -805,236 +810,4 @@
 <script>
     // Configurazione Supabase
     const SUPABASE_URL = 'https://sagzrjcbdtkqhdzdlmmn.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhZ3pyamNiZHRrcWhkemRsbW1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxOTA0ODUsImV4cCI6MjA3Mjc2NjQ4NX0.UzADYjRPzXTq8AqvuE13tV9o2nY305bmvY8fpP_AD2c';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    // Funzione per verificare la sessione
-function verifySession() {
-    const sessionData = localStorage.getItem('casino_session');
-    
-    if (!sessionData) {
-        window.location.href = 'login.html';
-        return null;
-    }
-    
-    try {
-        const session = JSON.parse(sessionData);
-        const sessionAge = Date.now() - session.timestamp;
-        
-        if (sessionAge > 24 * 60 * 60 * 1000) {
-            localStorage.removeItem('casino_session');
-            showNotification('Sessione scaduta. Effettua di nuovo il login.', 'error');
-            setTimeout(() => window.location.href = 'login.html', 2000);
-            return null;
-        }
-        
-        return session;
-    } catch (e) {
-        localStorage.removeItem('casino_session');
-        window.location.href = 'index.html';
-        return null;
-    }
-}
-
-    // Variabili globali
-    let currentUser = null;
-    let userBalance = 0;
-
-    // Controllo di sicurezza all'avvio
-    document.addEventListener('DOMContentLoaded', function() {
-        // Verifica la sessione
-        const session = verifySession();
-        if (!session) return;
-        
-        // La sessione è valida, carica i dati utente
-        currentUser = session.username;
-        loadUserData();
-    });
-
-    // Funzione per caricare i dati dell'utente
-    async function loadUserData() {
-        try {
-            // Recupera i dati dell'utente dal database
-            const { data: userData, error: userError } = await supabase
-                .from('players')
-                .select('username, balance')
-                .eq('username', currentUser)
-                .single();
-
-            if (userError) {
-                console.error('Errore nel recupero dati utente:', userError);
-                // Se l'utente non esiste, crealo con saldo iniziale
-                const { error: insertError } = await supabase
-                    .from('players')
-                    .insert([{
-                        username: currentUser,
-                        balance: 100.00
-                    }]);
-                    
-                if (insertError) {
-                    console.error('Errore nella creazione utente:', insertError);
-                    showNotification('Errore nel caricamento del profilo.', 'error');
-                    return;
-                }
-                
-                // Ricarica i dati dell'utente appena creato
-                showNotification('Account creato con successo!', 'success');
-                return loadUserData();
-            }
-
-            // Aggiorna le variabili globali
-            userBalance = parseFloat(userData.balance) || 0;
-
-            // Aggiorna l'interfaccia utente
-            updateUIWithUserData();
-
-        } catch (error) {
-            console.error('Errore nel caricamento dati utente:', error);
-            showNotification('Errore nel caricamento del profilo.', 'error');
-        }
-    }
-
-    // Funzione per aggiornare l'UI con i dati dell'utente
-    function updateUIWithUserData() {
-        if (currentUser) {
-            // Aggiorna il saldo (formattato con due decimali)
-            const formattedBalance = userBalance.toFixed(2);
-            document.getElementById('userBalance').textContent = `${formattedBalance} €`;
-            
-            // Aggiorna il nome utente
-            document.getElementById('usernameDisplay').textContent = currentUser;
-        }
-    }
-
-    // Funzione per aggiornare il balance nel database
-    async function updateBalance(newBalance) {
-        try {
-            const { error } = await supabase
-                .from('players')
-                .update({ balance: newBalance })
-                .eq('username', currentUser);
-                
-            if (error) {
-                console.error('Errore nell\'aggiornamento del balance:', error);
-                return false;
-            }
-            
-            userBalance = newBalance;
-            updateUIWithUserData();
-            return true;
-        } catch (error) {
-            console.error('Errore nell\'aggiornamento del balance:', error);
-            return false;
-        }
-    }
-
-    // Funzione per depositare fondi
-    async function depositFunds() {
-        const amountInput = document.getElementById('depositAmount');
-        const amount = parseFloat(amountInput.value);
-        
-        if (isNaN(amount) || amount <= 0) {
-            showNotification('Inserisci un importo valido.', 'error');
-            return;
-        }
-        
-        const newBalance = userBalance + amount;
-        const success = await updateBalance(newBalance);
-        
-        if (success) {
-            showNotification(`Depositati ${amount.toFixed(2)} € con successo!`, 'success');
-            closeDepositModal();
-        } else {
-            showNotification('Errore durante il deposito. Riprova più tardi.', 'error');
-        }
-    }
-
-    // Funzione per giocare
-    function playGame(gameName) {
-        if (userBalance <= 0) {
-            showNotification('Deposita crediti per giocare.', 'error');
-            showDepositModal();
-            return;
-        }
-        
-        // Qui implementerai la logica dei giochi
-        showNotification(`Gioco ${gameName} avviato!`, 'info');
-        
-        // Esempio: sottrai 10€ per giocare (sostituisci con la logica reale)
-        setTimeout(async () => {
-            const betAmount = 10;
-            if (userBalance >= betAmount) {
-                const newBalance = userBalance - betAmount;
-                const success = await updateBalance(newBalance);
-                
-                if (success) {
-                    showNotification(`Hai perso ${betAmount} €. Riprova!`, 'error');
-                }
-            }
-        }, 2000);
-    }
-
-    // Funzione di logout
-    async function logout() {
-        if (confirm('Sei sicuro di voler uscire?')) {
-            // Rimuovi la sessione
-            localStorage.removeItem('casino_session');
-            window.location.href = 'index.html';
-        }
-    }
-
-    // Gestione Modal
-    function showDepositModal() {
-        document.getElementById('depositModal').style.display = 'flex';
-        document.getElementById('depositAmount').value = '';
-    }
-
-    function closeDepositModal() {
-        document.getElementById('depositModal').style.display = 'none';
-    }
-
-    // Funzione per mostrare notifiche
-    function showNotification(message, type = 'info') {
-        const notification = document.getElementById('notification');
-        const notificationText = document.getElementById('notificationText');
-        
-        notificationText.textContent = message;
-        notification.className = `notification ${type}`;
-        notification.classList.add('show');
-        
-        // Nascondi la notifica dopo 3 secondi
-        setTimeout(() => {
-            notification.classList.remove('show');
-        }, 3000);
-    }
-
-    // Interattività UI
-    const gameCards = document.querySelectorAll('.game-card');
-    gameCards.forEach(card => {
-        card.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-5px)';
-        });
-        
-        card.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0)';
-        });
-    });
-    
-    const gameItems = document.querySelectorAll('.game-item');
-    gameItems.forEach(item => {
-        item.addEventListener('click', function() {
-            gameItems.forEach(i => i.classList.remove('active'));
-            this.classList.add('active');
-        });
-    });
-
-    // Chiudi il modal cliccando fuori
-    window.addEventListener('click', function(event) {
-        const modal = document.getElementById('depositModal');
-        if (event.target === modal) {
-            closeDepositModal();
-        }
-    });
-</script>
-</body>
-</html>
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhZ3pyamNiZHRrcWhkemRsbW1uIiwicm9sZSI6ImFub24i
