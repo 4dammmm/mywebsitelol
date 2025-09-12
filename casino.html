@@ -809,36 +809,32 @@
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // Funzione per verificare la sessione
-    function verifySession() {
-        const sessionData = localStorage.getItem('casino_session');
-        
-        if (!sessionData) {
-            // Nessuna sessione trovata, reindirizza al login
-            window.location.href = 'index.html';
-            return null;
-        }
-        
-        try {
-            const session = JSON.parse(sessionData);
-            
-            // Verifica che la sessione non sia scaduta (24 ore)
-            const sessionAge = Date.now() - session.timestamp;
-            if (sessionAge > 24 * 60 * 60 * 1000) {
-                // Sessione scaduta
-                localStorage.removeItem('casino_session');
-                showNotification('Sessione scaduta. Effettua di nuovo il login.', 'error');
-                setTimeout(() => window.location.href = 'index.html', 2000);
-                return null;
-            }
-            
-            return session;
-        } catch (e) {
-            // Sessione non valida
-            localStorage.removeItem('casino_session');
-            window.location.href = 'index.html';
-            return null;
-        }
+function verifySession() {
+    const sessionData = localStorage.getItem('casino_session');
+    
+    if (!sessionData) {
+        window.location.href = 'login.html';
+        return null;
     }
+    
+    try {
+        const session = JSON.parse(sessionData);
+        const sessionAge = Date.now() - session.timestamp;
+        
+        if (sessionAge > 24 * 60 * 60 * 1000) {
+            localStorage.removeItem('casino_session');
+            showNotification('Sessione scaduta. Effettua di nuovo il login.', 'error');
+            setTimeout(() => window.location.href = 'login.html', 2000);
+            return null;
+        }
+        
+        return session;
+    } catch (e) {
+        localStorage.removeItem('casino_session');
+        window.location.href = 'index.html';
+        return null;
+    }
+}
 
     // Variabili globali
     let currentUser = null;
